@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MNS Risk Matrix — Manx Nature Registry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400&family=Roboto+Slab:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:["Carlito","Calibri","Arial","sans-serif"],mono:["Carlito","Arial","sans-serif"],serif:["Roboto Slab","Georgia","serif"]},colors:{amber:{50:"#F4EFE9",100:"#EFE6DB",200:"#E3D3C2",300:"#D8C2AD",400:"#CAB29D",500:"#B79A80",600:"#A08468",700:"#8C6D53",800:"#6F573F",900:"#574433"},emerald:{50:"#E6F0EF",100:"#D3E7E5",200:"#BCDEDC",300:"#93CFCC",400:"#6BC0BD",500:"#52B6B4",600:"#237370",700:"#237370",800:"#1C5C5A",900:"#164645"}}}}};</script>
+<style>html,body{margin:0;padding:0;background:#F8F9F7;color:#1A1A1A;font-family:"Carlito","Calibri",Arial,sans-serif;}#mns-backbar{display:flex;align-items:center;gap:12px;padding:10px 20px;background:#F1F5F3;border-bottom:1px solid #E5E7EB;position:sticky;top:0;z-index:99999;font-family:"Carlito",Arial,sans-serif;}#mns-backbar .chev{color:#64748B;text-decoration:none;font-size:22px;line-height:1;padding:0 2px;}#mns-backbar .chev:hover{color:#1A1A1A;}#mns-backbar .ficon{color:#237370;flex-shrink:0;display:block;}#mns-backbar .ttl{font-weight:700;font-size:14px;color:#1A1A1A;line-height:1.15;}#mns-backbar .sub{font-size:12px;color:#64748B;line-height:1.2;}#root{max-width:none;margin:0;}.mns-loading{padding:52px 16px;text-align:center;color:#64748B;font-size:14px;font-family:"Carlito",Arial,sans-serif;}</style></head>
+<body>
+<div id="mns-backbar"><a id="mns-back" class="chev" href="#" aria-label="Back to docs">‹</a><svg class="ficon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><div><div class="ttl">MNS Risk Matrix</div><div class="sub">Manx Nature Registry</div></div></div>
+<div id="root"><div class="mns-loading">Loading MNS Risk Matrix…</div></div>
+<script>var MNS_DOCS_URL="https://REPLACE-WITH-YOUR-GITBOOK-URL";document.getElementById('mns-back').setAttribute('href',MNS_DOCS_URL);</script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useMemo } = React;
+
+
+const FONT = `@import url('https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400&family=Roboto+Slab:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap');`;
+
+// ── Design tokens — Isometric registry light theme (matches MNS_Calculator) ──
+const S = {
+  bg:           '#F8F9F7',           // warm cream page bg
+  surface:      '#ffffff',           // white cards / panels
+  surfaceAlt:   '#F2F3F0',           // slightly warm white for ledger rows / pill bgs
+  border:       'rgba(0,0,0,0.08)',  // warm light divider
+  borderStrong: 'rgba(0,0,0,0.14)', // stronger divider
+  text:         '#1A1A1A',           // near-black primary
+  textMuted:    '#5A5F5B',           // mid-grey secondary
+  textDim:      '#a8a5a0',           // light grey tertiary / labels
+  accent:       '#237370',           // Isometric ID green
+  amber:        '#8C6D53',           // warm amber
+  amberDim:     'rgba(140,109,83,0.10)',
+  red:          '#B4453C',
+  redDim:       'rgba(180,69,60,0.08)',
+};
+
+// ─── tiny icon set ──────────────────────────────────────────────────────────
+const Icon = ({ d, size = 16, stroke = "currentColor", strokeWidth = 1.75 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    {d.map((p, i) => <path key={i} d={p} />)}
+  </svg>
+);
+const ICONS = {
+  shield: ["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"],
+  wind:   ["M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"],
+  sun:    ["M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42","M12 17A5 5 0 1 0 12 7a5 5 0 0 0 0 10z"],
+  bug:    ["M8 2l1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3.003 3.003 0 1 1 6 0v1M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6z","M6 13H2M22 13h-4M6 19l-2 2M18 19l2 2"],
+  flame:  ["M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"],
+  brief:  ["M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z","M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"],
+  file:   ["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z","M14 2v6h6","M16 13H8M16 17H8M10 9H8"],
+  calc:   ["M4 2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z","M8 6h8M8 10h4M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"],
+  check:  ["M22 11.08V12a10 10 0 1 1-5.93-9.14","M22 4 12 14.01l-3-3"],
+  arrow:  ["M5 12h14M12 5l7 7-7 7"],
+};
+
+// ─── reusable components ─────────────────────────────────────────────────────
+const Badge = ({ children, variant = "neutral" }) => {
+  const styles = {
+    neutral: "bg-stone-100 text-stone-500 border-stone-200",
+    up:      "bg-red-50 text-red-600 border-red-200",
+    down:    "bg-emerald-50 text-emerald-700 border-emerald-200",
+    active:  "bg-amber-50 text-amber-700 border-amber-200",
+  };
+  return (
+    <span className={`inline-flex items-center gap-1 text-[12px] font-mono font-medium px-1.5 py-0.5 rounded border tracking-wide ${styles[variant]}`}>
+      {children}
+    </span>
+  );
+};
+
+const RiskRow = ({ label, value, base }) => {
+  const delta = value - base;
+  const variant = delta > 0 ? "up" : delta < 0 ? "down" : "neutral";
+  return (
+    <div className="flex items-center justify-between py-2.5 border-b border-stone-100 last:border-0 group">
+      <span className="text-[13px] text-stone-500 group-hover:text-stone-700 transition-colors">{label}</span>
+      <div className="flex items-center gap-2">
+        {delta !== 0 && (
+          <Badge variant={variant}>
+            {delta > 0 ? "+" : ""}{delta.toFixed(1)}%
+          </Badge>
+        )}
+        <span className={`font-mono text-sm font-medium tabular-nums w-10 text-right ${delta > 0 ? "text-red-600" : delta < 0 ? "text-emerald-600" : "text-stone-600"}`}>
+          {value.toFixed(1)}%
+        </span>
+      </div>
+    </div>
+  );
+};
+
+const CheckOption = ({ label, detail, effect, checked, onChange }) => (
+  <label
+    className="flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all duration-150"
+    style={{
+      border: `1px solid ${checked ? S.borderStrong : S.border}`,
+      background: checked ? S.surfaceAlt : S.surface,
+    }}>
+    <div className="mt-0.5 w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center transition-colors"
+      style={{ background: checked ? S.text : S.surface, borderColor: checked ? S.text : S.borderStrong }}>
+      {checked && <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 4l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+    </div>
+    <input type="checkbox" className="sr-only" checked={checked} onChange={onChange} />
+    <div className="flex-1 min-w-0">
+      <div className="text-[13px] font-medium" style={{ color: S.text }}>{label}</div>
+      <div className="text-[12px] mt-0.5" style={{ color: S.textDim }}>{detail}</div>
+    </div>
+    <Badge variant={effect > 0 ? "up" : "down"}>
+      {effect > 0 ? "+" : ""}{effect.toFixed(1)}%
+    </Badge>
+  </label>
+);
+
+const SectionHeader = ({ icon, title, subtitle }) => (
+  <div className="flex items-start gap-3 mb-5">
+    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: S.surfaceAlt }}>
+      <Icon d={icon} size={14} stroke={S.textMuted} />
+    </div>
+    <div>
+      <h2 className="text-sm font-semibold text-stone-700 tracking-tight">{title}</h2>
+      {subtitle && <p className="text-[12px] text-stone-400 mt-0.5 leading-relaxed">{subtitle}</p>}
+    </div>
+  </div>
+);
+
+// ─── main app ────────────────────────────────────────────────────────────────
+function App() {
+  const [highDams, setHighDams] = useState(false);
+  const [peatSoils, setPeatSoils] = useState(false);
+  const [sandySoils, setSandySoils] = useState(false);
+  const [riparianBuffers, setRiparianBuffers] = useState(false);
+  const [lowSpecies, setLowSpecies] = useState(false);
+  const [highSpecies, setHighSpecies] = useState(false);
+  const [heathBorder, setHeathBorder] = useState(false);
+  const [fireBreaks, setFireBreaks] = useState(false);
+  const [financial, setFinancial] = useState(0);
+  const [management, setManagement] = useState(0);
+  const [tenure, setTenure] = useState(0);
+  const [scores, setScores] = useState({ part1: 10, part2: 0, total: 10, final: 10, breakdown: { windthrow: 4, drought: 2, pests: 3, fire: 1 } });
+
+  useEffect(() => {
+    const windthrow = 4.0 + (highDams ? 2.0 : 0) + (peatSoils ? 1.0 : 0);
+    const drought   = 2.0 + (sandySoils ? 1.0 : 0) - (riparianBuffers ? 1.0 : 0);
+    const pests     = 3.0 + (lowSpecies ? 2.0 : 0) - (highSpecies ? 1.0 : 0);
+    const fire      = 1.0 + (heathBorder ? 2.0 : 0) - (fireBreaks ? 0.5 : 0);
+    const part1 = windthrow + drought + pests + fire;
+    const part2 = financial + management + tenure;
+    const total = part1 + part2;
+    const final = total;
+    setScores({ part1, part2, total, final, breakdown: { windthrow, drought, pests, fire } });
+  }, [highDams, peatSoils, sandySoils, riparianBuffers, lowSpecies, highSpecies, heathBorder, fireBreaks, financial, management, tenure]);
+
+  const isElevated = scores.final >= 20;
+    const ineligible = scores.final > 25;
+  const selectCls = "w-full text-[13px] font-medium bg-white border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition-all appearance-none cursor-pointer";
+
+  return (
+    <>
+      <style>{FONT}{`
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #f5f4f0; }
+        select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px !important; }
+        .font-mono { font-family: 'Carlito', Arial, sans-serif !important; }
+        h1, .text-5xl, .text-4xl, .text-3xl, .text-2xl { font-family: 'Roboto Slab', Georgia, serif !important; }
+        .font-sans { font-family: 'Carlito', Arial, sans-serif !important; }
+        .scorecard-enter { animation: fadeSlide 0.3s ease; }
+        @keyframes fadeSlide { from { opacity: 0.4; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+        .meter-fill { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+      `}</style>
+
+      <div className="min-h-screen font-sans" style={{ background: S.bg }}>
+
+        {/* ── Top nav bar ── */}
+        <div style={{ borderBottom: `1px solid ${S.border}`, background: S.surface }}>
+          <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-stone-700 tracking-tight">MNS Registry</span>
+              <span className="text-stone-300 text-xs mx-1">/</span>
+              <span className="text-sm text-stone-400">Permanence Risk Matrix</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 text-[12px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block animate-pulse" />
+                MNS-RM01 · Live
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Page header ── */}
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <div className="text-[12px] font-mono text-stone-400 tracking-widest uppercase mb-2">Buffer Network Contribution Tool</div>
+              <h1 className="text-2xl font-semibold text-stone-800 tracking-tight">Permanence Risk Assessment</h1>
+              <p className="text-sm text-stone-400 mt-1">Climate risk baselines applied for the Isle of Man Biosphere</p>
+            </div>
+            <div className="hidden md:grid grid-cols-1 gap-px rounded-md overflow-hidden text-center" style={{ background: S.border, border: `1px solid ${S.border}` }}>
+              {[["10.0%", "Base climate rate"]].map(([v, l]) => (
+                <div key={l} className="px-5 py-2.5" style={{ background: S.surface }}>
+                  <div className="font-mono text-base font-semibold" style={{ color: S.text }}>{v}</div>
+                  <div className="text-[12px] mt-0.5 uppercase tracking-wide" style={{ color: S.textDim }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            {/* ────── LEFT: INPUTS ────── */}
+            <div className="lg:col-span-7 space-y-5">
+
+              {/* Climate Risk */}
+              <div className="rounded-xl p-6" style={{ background: S.surface, border: `1px solid ${S.border}` }}>
+                <SectionHeader
+                  icon={ICONS.wind}
+                  title="Part 1 — Site-Specific Climate Risk Modifiers"
+                  subtitle="Base climate risks are applied automatically for the Isle of Man. Select any physical site modifiers below."
+                />
+
+                <div className="grid grid-cols-2 gap-5">
+                  {/* Windthrow */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <Icon d={ICONS.wind} size={12} stroke="#a8a29e" />
+                      <span className="text-[12px] font-semibold text-stone-400 uppercase tracking-widest">Windthrow</span>
+                      <span className="ml-auto font-mono text-[12px] text-stone-400">base 4.0%</span>
+                    </div>
+                    <div className="space-y-2">
+                      <CheckOption label="High Upland Exposure" detail="Mean DAMS score ≥ 15" effect={2.0} checked={highDams} onChange={e => setHighDams(e.target.checked)} />
+                      <CheckOption label="Poor Root Anchorage" detail="Organo-mineral / peat soils" effect={1.0} checked={peatSoils} onChange={e => setPeatSoils(e.target.checked)} />
+                    </div>
+                  </div>
+
+                  {/* Drought */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <Icon d={ICONS.sun} size={12} stroke="#a8a29e" />
+                      <span className="text-[12px] font-semibold text-stone-400 uppercase tracking-widest">Drought</span>
+                      <span className="ml-auto font-mono text-[12px] text-stone-400">base 2.0%</span>
+                    </div>
+                    <div className="space-y-2">
+                      <CheckOption label="Free-Draining Soils" detail="> 50% sandy, south-facing" effect={1.0} checked={sandySoils} onChange={e => setSandySoils(e.target.checked)} />
+                      <CheckOption label="Riparian Buffers Present" detail="Maintains site humidity" effect={-1.0} checked={riparianBuffers} onChange={e => setRiparianBuffers(e.target.checked)} />
+                    </div>
+                  </div>
+
+                  {/* Pests */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <Icon d={ICONS.bug} size={12} stroke="#a8a29e" />
+                      <span className="text-[12px] font-semibold text-stone-400 uppercase tracking-widest">Pests & Pathogens</span>
+                      <span className="ml-auto font-mono text-[12px] text-stone-400">base 3.0%</span>
+                    </div>
+                    <div className="space-y-2">
+                      <CheckOption label="Low Genetic Resilience" detail="< 3 dominant canopy species" effect={2.0} checked={lowSpecies} onChange={e => { setLowSpecies(e.target.checked); if (e.target.checked) setHighSpecies(false); }} />
+                      <CheckOption label="High Genetic Resilience" detail="≥ 5 distinct native species" effect={-1.0} checked={highSpecies} onChange={e => { setHighSpecies(e.target.checked); if (e.target.checked) setLowSpecies(false); }} />
+                    </div>
+                  </div>
+
+                  {/* Fire */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <Icon d={ICONS.flame} size={12} stroke="#a8a29e" />
+                      <span className="text-[12px] font-semibold text-stone-400 uppercase tracking-widest">Wildfire</span>
+                      <span className="ml-auto font-mono text-[12px] text-stone-400">base 1.0%</span>
+                    </div>
+                    <div className="space-y-2">
+                      <CheckOption label="Contiguous Fuel Load" detail="Borders unmanaged heath" effect={2.0} checked={heathBorder} onChange={e => setHeathBorder(e.target.checked)} />
+                      <CheckOption label="Active Fire Management" detail="Integrated firebreaks present" effect={-0.5} checked={fireBreaks} onChange={e => setFireBreaks(e.target.checked)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Internal Risks */}
+              <div className="rounded-xl p-6" style={{ background: S.surface, border: `1px solid ${S.border}` }}>
+                <SectionHeader
+                  icon={ICONS.brief}
+                  title="Part 2 — Internal Project Risks"
+                  subtitle="Select the category that best describes the project's financial, management, and tenure profile."
+                />
+                <div className="space-y-4">
+                  {[
+                    { label: "2.1 — Financial Failure Risk", val: financial, set: setFinancial, opts: [
+                      [0,   "Fully Funded", "Grants, equity, or escrow secured"],
+                      [2.0, "Spot Market Reliant", "Relies on carbon sales for OPEX"],
+                      [5.0, "Debt Funded", "Relies on carbon to service loans"],
+                    ]},
+                    { label: "2.2 — Management & Technical Risk", val: management, set: setManagement, opts: [
+                      [0,   "Professional Practitioner", "Certified forester"],
+                      [2.0, "Assisted Landowner", "Retained consultant for ≥ 5 years"],
+                      [4.0, "Unassisted Landowner", "No formal expertise or oversight"],
+                    ]},
+                    { label: "2.3 — Land Tenure & Reversal Risk", val: tenure, set: setTenure, opts: [
+                      [0,   "Deed Restriction", "Legally binding conservation easement"],
+                      [2.0, "Crown / Government Land", "e.g. DEFA estate"],
+                      [5.0, "Weak Tenure", "No restriction, or terminable lease"],
+                    ]},
+                  ].map(({ label, val, set, opts }) => (
+                    <div key={label}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[12px] font-semibold text-stone-500 uppercase tracking-wide">{label}</label>
+                        <Badge variant={val > 0 ? "active" : "neutral"}>
+                          {val > 0 ? `+${val.toFixed(1)}%` : "0.0%"}
+                        </Badge>
+                      </div>
+                      <select value={val} onChange={e => set(Number(e.target.value))} className={selectCls} style={{ color: S.text, borderColor: S.borderStrong }}>
+                        {opts.map(([v, title, desc]) => (
+                          <option key={v} value={v}>{v.toFixed(1)}% — {title} · {desc}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ────── RIGHT: SCORECARD ────── */}
+            <div className="lg:col-span-5">
+              <div className="sticky top-6 space-y-4">
+
+                {/* Main result card */}
+                <div className="rounded-xl overflow-hidden transition-all duration-500" style={{ border: `1px solid ${isElevated ? "rgba(201,124,20,0.4)" : S.border}` }}>
+                  <div className="px-5 py-3.5 border-b flex items-center justify-between transition-colors duration-500"
+                    style={{
+                      background: isElevated ? S.amberDim : S.surfaceAlt,
+                      borderColor: isElevated ? "rgba(201,124,20,0.25)" : S.border,
+                    }}>
+                    <div className="flex items-center gap-2">
+                      <Icon d={ICONS.file} size={14} stroke={isElevated ? "#b45309" : "#78716c"} />
+                      <span className={`text-xs font-semibold tracking-wide uppercase ${isElevated ? "text-amber-700" : "text-stone-500"}`}>Risk Scorecard</span>
+                    </div>
+                    <div className="text-[12px] font-mono px-2 py-0.5 rounded-full border"
+                      style={isElevated
+                        ? { background: S.amberDim, borderColor: "rgba(140,109,83,0.35)", color: S.amber }
+                        : { background: S.surfaceAlt, borderColor: S.borderStrong, color: S.textDim }}>
+                      {isElevated ? "ELEVATED PROFILE" : "STANDARD PROFILE"}
+                    </div>
+                  </div>
+
+                  <div className="p-5 space-y-5 scorecard-enter" key={scores.final} style={{ background: S.surface }}>
+
+                    {/* P1 rows */}
+                    <div>
+                      <div className="text-[12px] font-mono font-semibold text-stone-400 uppercase tracking-widest mb-1">Part 1 · Jurisdictional Climate</div>
+                      <RiskRow label="Windthrow + modifiers" value={scores.breakdown.windthrow} base={4.0} />
+                      <RiskRow label="Drought + modifiers"   value={scores.breakdown.drought}   base={2.0} />
+                      <RiskRow label="Pests + modifiers"     value={scores.breakdown.pests}     base={3.0} />
+                      <RiskRow label="Wildfire + modifiers"  value={scores.breakdown.fire}      base={1.0} />
+                      <div className="flex justify-between pt-2 mt-1">
+                        <span className="text-[12px] font-semibold text-stone-600">Subtotal</span>
+                        <span className="font-mono text-sm font-semibold text-stone-700 tabular-nums">{scores.part1.toFixed(1)}%</span>
+                      </div>
+                    </div>
+
+                    {/* P2 rows */}
+                    <div style={{ borderTop: `1px solid ${S.border}` }} className="pt-5">
+                      <div className="text-[12px] font-mono font-semibold text-stone-400 uppercase tracking-widest mb-1">Part 2 · Internal Project</div>
+                      <RiskRow label="Financial failure risk" value={financial}   base={0} />
+                      <RiskRow label="Management risk"        value={management}  base={0} />
+                      <RiskRow label="Tenure risk"            value={tenure}      base={0} />
+                      <div className="flex justify-between pt-2 mt-1">
+                        <span className="text-[12px] font-semibold text-stone-600">Subtotal</span>
+                        <span className="font-mono text-sm font-semibold text-stone-700 tabular-nums">{scores.part2.toFixed(1)}%</span>
+                      </div>
+                    </div>
+
+                    {/* Meter */}
+                    <div style={{ borderTop: `1px solid ${S.border}` }} className="pt-4">
+                      <div className="flex justify-between text-[12px] text-stone-500 mb-1">
+                        <span>Calculated Total</span>
+                        <span className="font-mono font-medium text-stone-700 tabular-nums">{scores.total.toFixed(1)}%</span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: S.surfaceAlt }}>
+                        <div
+                          className={`h-full rounded-full meter-fill ${scores.total >= 20 ? "bg-amber-400" : "bg-stone-400"}`}
+                          style={{ width: `${Math.min(100, (scores.total / 25) * 100)}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-[12px] text-stone-300 mt-0.5 font-mono">
+                        <span>0%</span><span>25%</span>
+                      </div>
+                    </div>
+
+                    {/* Final result */}
+                    <div className="rounded-md p-5 border transition-all duration-500"
+                      style={{ background: ineligible ? S.redDim : isElevated ? S.amberDim : 'color-mix(in srgb, #7E4E8A 6%, white)', borderColor: ineligible ? 'rgba(180,69,60,0.35)' : isElevated ? 'rgba(140,109,83,0.35)' : 'rgba(126,78,138,0.25)' }}>
+                      <div className="text-[12px] uppercase tracking-widest mb-2"
+                        style={{ color: ineligible ? S.red : isElevated ? S.amber : '#7E4E8A' }}>
+                        {ineligible ? "Project Ineligible" : "Final Buffer Network Rate"}
+                      </div>
+                      <div className="text-5xl font-semibold tabular-nums leading-none"
+                        style={{ color: ineligible ? S.red : isElevated ? S.amber : '#6F4279' }}>
+                        {scores.final.toFixed(1)}<span className="text-2xl font-normal">%</span>
+                      </div>
+                      <div className="text-[12px] mt-2" style={{ color: ineligible ? S.red : S.textMuted }}>
+                        {ineligible
+                          ? "Risk exceeds the 25% maximum (Core §6.2.3) — mitigation required before validation"
+                          : isElevated ? "Elevated risk profile" : "Standard risk profile"}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Export */}
+                <button disabled={ineligible} className="w-full text-white text-sm font-medium py-3 rounded-md transition-colors flex items-center justify-center gap-2 group" style={{ background: ineligible ? '#B8B8B4' : '#7E4E8A', cursor: ineligible ? 'not-allowed' : 'pointer' }} onMouseEnter={e=>{ if(!ineligible) e.currentTarget.style.background='#6F4279'; }} onMouseLeave={e=>{ if(!ineligible) e.currentTarget.style.background='#7E4E8A'; }}>
+                  <Icon d={ICONS.calc} size={14} stroke="currentColor" />
+                  Export to MNS Calculator
+                  <Icon d={ICONS.arrow} size={14} stroke="currentColor" />
+                </button>
+
+                {/* VVB footnote */}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: S.surfaceAlt, border: `1px solid ${S.border}` }}>
+                  <Icon d={ICONS.check} size={13} stroke="#16a34a" />
+                  <span className="text-[12px] text-stone-400">Output formatted for VVB audit · MNS-RM01</span>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

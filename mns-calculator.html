@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MNS Calculator — Manx Nature Registry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400&family=Roboto+Slab:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<style>html,body{margin:0;padding:0;background:#F8F9F7;color:#1A1A1A;font-family:"Carlito","Calibri",Arial,sans-serif;}#mns-backbar{display:flex;align-items:center;gap:12px;padding:10px 20px;background:#F1F5F3;border-bottom:1px solid #E5E7EB;position:sticky;top:0;z-index:99999;font-family:"Carlito",Arial,sans-serif;}#mns-backbar .chev{color:#64748B;text-decoration:none;font-size:22px;line-height:1;padding:0 2px;}#mns-backbar .chev:hover{color:#1A1A1A;}#mns-backbar .ficon{color:#237370;flex-shrink:0;display:block;}#mns-backbar .ttl{font-weight:700;font-size:14px;color:#1A1A1A;line-height:1.15;}#mns-backbar .sub{font-size:12px;color:#64748B;line-height:1.2;}#root{max-width:1120px;margin:0 auto;}.mns-loading{padding:52px 16px;text-align:center;color:#64748B;font-size:14px;font-family:"Carlito",Arial,sans-serif;}</style></head>
+<body>
+<div id="mns-backbar"><a id="mns-back" class="chev" href="#" aria-label="Back to docs">‹</a><svg class="ficon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><div><div class="ttl">MNS Calculator</div><div class="sub">Manx Nature Registry</div></div></div>
+<div id="root"><div class="mns-loading">Loading MNS Calculator…</div></div>
+<script>var MNS_DOCS_URL="https://REPLACE-WITH-YOUR-GITBOOK-URL";document.getElementById('mns-back').setAttribute('href',MNS_DOCS_URL);</script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useMemo } = React;
+
+
+// ── Design tokens — Isometric registry light theme ─────────────────────────
+const S = {
+  font:         `'Carlito', 'Calibri', Arial, sans-serif`,
+  fontSans:     `'Carlito', 'Calibri', Arial, sans-serif`,
+  fontHead:     `'Roboto Slab', Georgia, serif`,
+  bg:           '#F8F9F7',          // warm cream page bg
+  surface:      '#ffffff',          // white cards / panels
+  surfaceAlt:   '#F2F3F0',          // slightly warm white for ledger bg
+  border:       'rgba(0,0,0,0.08)', // warm light divider
+  borderStrong: 'rgba(0,0,0,0.14)', // stronger divider
+  text:         '#1A1A1A',          // near-black primary
+  textMuted:    '#5A5F5B',          // mid-grey secondary
+  textDim:      '#a8a5a0',          // light grey tertiary / labels
+  accent:       '#237370',          // dark muted green (Isometric ID green)
+  accentDim:    'rgba(35,115,112,0.10)',
+  accentDimmer: 'rgba(35,115,112,0.06)',
+  red:          '#B4453C',          // salmon red (RETIRED pill tone)
+  redDim:       'rgba(180,69,60,0.08)',
+  amber:        '#8C6D53',          // warm amber (buffer pool values)
+  amberDim:     'rgba(140,109,83,0.10)',
+  blue:         '#3E8FC0',          // periwinkle (DELIVERED tone)
+  blueDim:      'rgba(62,143,192,0.10)',
+  purple:       '#7E4E8A',          // lavender (TRANSFERRED tone)
+  purpleDim:    'rgba(126,78,138,0.10)',
+};
+
+// ── Protocol constants ─────────────────────────────────────────────────────
+const BEF = 1.40, R2S = 0.24, CF = 0.47, STOICH = 44 / 12;
+const BURRELL_RS = 1.07;
+const BURRELL_RS_SPECIES = new Set(['hawthorn', 'blackthorn', 'goat_willow']);
+
+// ── Species registry ───────────────────────────────────────────────────────
+// SG source key: WCC = UK Woodland Carbon Code lookup tables;
+//                GWDD = Global Wood Density Database (Chave et al.);
+//                IPCC = IPCC 2006 GLs Table 4.13.
+// Selection policy: Jurisdictional authority (WCC) first; conservativeness second.
+const SPECIES_DATA = {
+  // ── Primary canopy / broadleaf ─────────────────────────────────────────
+  oak:         { label: 'Sessile / Pedunculate Oak', sg: 0.56, sgSrc: 'WCC'  },
+  ash:         { label: 'Ash',                        sg: 0.53, sgSrc: 'WCC'  },
+  birch:       { label: 'Downy / Silver Birch',       sg: 0.51, sgSrc: 'WCC'  },
+  alder:       { label: 'Common Alder',               sg: 0.43, sgSrc: 'WCC'  },
+  aspen:       { label: 'Aspen',                      sg: 0.35, sgSrc: 'WCC'  },
+  cherry:      { label: 'Wild Cherry',                sg: 0.48, sgSrc: 'GWDD/IPCC' },
+  elm:         { label: 'Wych Elm',                   sg: 0.55, sgSrc: 'GWDD' },
+  rowan:       { label: 'Rowan',                      sg: 0.55, sgSrc: 'WCC'  },
+  whitebeam:   { label: 'Whitebeam',                  sg: 0.60, sgSrc: 'GWDD' },
+  // ── Understory / shrub layer ───────────────────────────────────────────
+  hazel:       { label: 'Hazel',                      sg: 0.53, sgSrc: 'WCC'  },
+  hawthorn:    { label: 'Hawthorn',                   sg: 0.60, sgSrc: 'GWDD' },
+  holly:       { label: 'Holly',                      sg: 0.60, sgSrc: 'GWDD' },
+  bird_cherry: { label: 'Bird Cherry',                sg: 0.48, sgSrc: 'GWDD' },
+  blackthorn:  { label: 'Blackthorn',                 sg: 0.60, sgSrc: 'GWDD' },
+  crab_apple:  { label: 'Crab Apple',                 sg: 0.60, sgSrc: 'GWDD' },
+  elder:       { label: 'Elder',                      sg: 0.50, sgSrc: 'GWDD Conservative' },
+  guelder:     { label: 'Guelder Rose',               sg: 0.50, sgSrc: 'GWDD Conservative' },
+  goat_willow: { label: 'Goat / Grey Willow',         sg: 0.39, sgSrc: 'WCC'  },
+  // ── Native conifers ────────────────────────────────────────────────────
+  scots_pine:  { label: 'Scots Pine',                 sg: 0.42, sgSrc: 'WCC'  },
+  yew:         { label: 'Yew',                        sg: 0.60, sgSrc: 'GWDD' },
+};
+
+// ── UKFC Yield Tables: Cumulative Volume Over Bark m³/ha ──────────────────
+// Primary source: Edwards & Christie (1981) "Yield Models for Forest Management",
+// FC Booklet 48. Supplementary: Forest Research ESC Yield Model data library.
+// ⚠ PRODUCTION NOTE: Replace proxy curves below with exact digitised E&C
+//   lookup values extracted at 5-yr intervals per species/YC combination.
+//   Extract "Cumulative Volume over Bark" series from FC Booklet 48 or the
+//   Forest Research ESC data portal (forestresearch.gov.uk/tools-and-resources/
+//   fthr/ecological-site-classification/).
+//
+// Species-specific YC availability:
+//   YC 4/6/8 — all species
+//   YC 10    — Scots Pine, Aspen only (per MNS-M01 §5.3 amendment)
+//
+// Shrub/understory species (bird_cherry, blackthorn, crab_apple, elder,
+// guelder, goat_willow, yew) are mapped to the conservative hazel/hawthorn
+// proxy curve pending species-specific FC data extraction.
+const UKFC = {
+  // ── Primary canopy — direct E&C lookup ──────────────────────────────────
+  oak: {
+    4:{5:0, 10:2,  15:11, 20:26,  25:48,  30:74,  35:105, 40:138, 45:172, 50:206},
+    6:{5:0, 10:8,  15:28, 20:59,  25:98,  30:142, 35:189, 40:236, 45:283, 50:328},
+    8:{5:2, 10:18, 15:54, 20:104, 25:161, 30:222, 35:284, 40:345, 45:404, 50:461},
+  },
+  ash: {
+    4:{5:0, 10:4,  15:15, 20:30,  25:52,  30:80,  35:112, 40:145, 45:178, 50:212},
+    6:{5:1, 10:12, 15:35, 20:68,  25:110, 30:155, 35:200, 40:248, 45:295, 50:340},
+    8:{5:4, 10:24, 15:65, 20:118, 25:175, 30:240, 35:300, 40:360, 45:418, 50:475},
+  },
+  birch: {
+    4:{5:1, 10:5,  15:18, 20:35,  25:58,  30:83,  35:110, 40:135, 45:158, 50:178},
+    6:{5:3, 10:16, 15:42, 20:78,  25:118, 30:159, 35:200, 40:238, 45:272, 50:302},
+    8:{5:6, 10:32, 15:75, 20:130, 25:188, 30:246, 35:302, 40:352, 45:398, 50:438},
+  },
+  alder: {
+    4:{5:1, 10:5,  15:18, 20:35,  25:58,  30:83,  35:110, 40:135, 45:158, 50:178},
+    6:{5:3, 10:16, 15:42, 20:78,  25:118, 30:159, 35:200, 40:238, 45:272, 50:302},
+    8:{5:6, 10:32, 15:75, 20:130, 25:188, 30:246, 35:302, 40:352, 45:398, 50:438},
+  },
+  // Aspen — proxy mapped to upper birch range (similar pioneer habit); YC10 authorised
+  aspen: {
+    4: {5:1, 10:6,  15:18, 20:36,  25:58,  30:82,  35:106, 40:128, 45:148, 50:164},
+    6: {5:3, 10:18, 15:44, 20:80,  25:118, 30:156, 35:192, 40:224, 45:252, 50:276},
+    8: {5:7, 10:34, 15:78, 20:132, 25:190, 30:246, 35:298, 40:344, 45:384, 50:418},
+    10:{5:12,10:55, 15:118,20:192, 25:268, 30:338, 35:400, 40:452, 45:496, 50:532},
+  },
+  cherry: {
+    4:{5:0, 10:4,  15:15, 20:30,  25:52,  30:80,  35:112, 40:145, 45:178, 50:212},
+    6:{5:1, 10:12, 15:35, 20:68,  25:110, 30:155, 35:200, 40:248, 45:295, 50:340},
+    8:{5:4, 10:24, 15:65, 20:118, 25:175, 30:240, 35:300, 40:360, 45:418, 50:475},
+  },
+  elm: {
+    4:{5:0, 10:2,  15:11, 20:26,  25:48,  30:74,  35:105, 40:138, 45:172, 50:206},
+    6:{5:0, 10:8,  15:28, 20:59,  25:98,  30:142, 35:189, 40:236, 45:283, 50:328},
+    8:{5:2, 10:18, 15:54, 20:104, 25:161, 30:222, 35:284, 40:345, 45:404, 50:461},
+  },
+  rowan: {
+    4:{5:1, 10:4,  15:12, 20:24,  25:40,  30:58,  35:78,  40:98,  45:118, 50:136},
+    6:{5:2, 10:10, 15:26, 20:48,  25:76,  30:106, 35:138, 40:168, 45:196, 50:222},
+    8:{5:4, 10:20, 15:48, 20:84,  25:126, 30:170, 35:216, 40:258, 45:298, 50:334},
+  },
+  // Whitebeam — proxy mapped to rowan (same Sorbus genus, similar growth rate)
+  whitebeam: {
+    4:{5:1, 10:4,  15:12, 20:24,  25:40,  30:58,  35:78,  40:98,  45:118, 50:136},
+    6:{5:2, 10:10, 15:26, 20:48,  25:76,  30:106, 35:138, 40:168, 45:196, 50:222},
+    8:{5:4, 10:20, 15:48, 20:84,  25:126, 30:170, 35:216, 40:258, 45:298, 50:334},
+  },
+  // ── Understory / shrub layer — conservative hazel/hawthorn proxy ─────────
+  hazel: {
+    4:{5:1, 10:4,  15:12, 20:24,  25:40,  30:58,  35:78,  40:98,  45:118, 50:136},
+    6:{5:2, 10:10, 15:26, 20:48,  25:76,  30:106, 35:138, 40:168, 45:196, 50:222},
+    8:{5:4, 10:20, 15:48, 20:84,  25:126, 30:170, 35:216, 40:258, 45:298, 50:334},
+  },
+  hawthorn: {
+    4:{5:1, 10:4,  15:12, 20:24,  25:40,  30:58,  35:78,  40:98,  45:118, 50:136},
+    6:{5:2, 10:10, 15:26, 20:48,  25:76,  30:106, 35:138, 40:168, 45:196, 50:222},
+    8:{5:4, 10:20, 15:48, 20:84,  25:126, 30:170, 35:216, 40:258, 45:298, 50:334},
+  },
+  holly: {
+    4:{5:1, 10:4,  15:12, 20:24,  25:40,  30:58,  35:78,  40:98,  45:118, 50:136},
+    6:{5:2, 10:10, 15:26, 20:48,  25:76,  30:106, 35:138, 40:168, 45:196, 50:222},
+    8:{5:4, 10:20, 15:48, 20:84,  25:126, 30:170, 35:216, 40:258, 45:298, 50:334},
+  },
+  bird_cherry: {
+    4:{5:1, 10:4,  15:12, 20:24,  25:40,  30:58,  35:78,  40:98,  45:118, 50:136},
+    6:{5:2, 10:10, 15:26, 20:48,  25:76,  30:106, 35:138, 40:168, 45:196, 50:222},
+    8:{5:4, 10:20, 15:48, 20:84,  25:126, 30:170, 35:216, 40:258, 45:298, 50:334},
+  },
+  blackthorn: {
+    4:{5:1, 10:4,  15:12, 20:24,  25:40,  30:58,  35:78,  40:98,  45:118, 50:136},
+    6:{5:2, 10:10, 15:26, 20:48,  25:76,  30:106, 35:138, 40:168, 45:196, 50:222},
+    8:{5:4, 10:20, 15:48, 20:84,  25:126, 30:170, 35:216, 40:258, 45:298, 50:334},
+  },
+  crab_apple: {
+    4:{5:1, 10:4,  15:12, 20:24,  25:40,  30:58,  35:78,  40:98,  45:118, 50:136},
+    6:{5:2, 10:10, 15:26, 20:48,  25:76,  30:106, 35:138, 40:168, 45:196, 50:222},
+    8:{5:4, 10:20, 15:48, 20:84,  25:126, 30:170, 35:216, 40:258, 45:298, 50:334},
+  },
+  elder: {
+    4:{5:1, 10:4,  15:12, 20:24,  25:40,  30:58,  35:78,  40:98,  45:118, 50:136},
+    6:{5:2, 10:10, 15:26, 20:48,  25:76,  30:106, 35:138, 40:168, 45:196, 50:222},
+    8:{5:4, 10:20, 15:48, 20:84,  25:126, 30:170, 35:216, 40:258, 45:298, 50:334},
+  },
+  guelder: {
+    4:{5:1, 10:4,  15:12, 20:24,  25:40,  30:58,  35:78,  40:98,  45:118, 50:136},
+    6:{5:2, 10:10, 15:26, 20:48,  25:76,  30:106, 35:138, 40:168, 45:196, 50:222},
+    8:{5:4, 10:20, 15:48, 20:84,  25:126, 30:170, 35:216, 40:258, 45:298, 50:334},
+  },
+  goat_willow: {
+    4:{5:2, 10:12, 15:28, 20:48,  25:70,  30:92,  35:112, 40:130, 45:145, 50:155},
+    6:{5:5, 10:28, 15:60, 20:95,  25:135, 30:170, 35:200, 40:225, 45:245, 50:260},
+    8:{5:10,10:50, 15:105,20:160, 25:215, 30:265, 35:305, 40:335, 45:355, 50:370},
+  },
+  // ── Native conifers ──────────────────────────────────────────────────────
+  // Scots Pine — directly sourced from E&C FC Booklet 48 (Pinus sylvestris);
+  // YC10 authorised per MNS-M01 §5.3 amendment for productive lowland sites.
+  scots_pine: {
+    4: {5:0, 10:6,  15:20, 20:40,  25:62,  30:85,  35:108, 40:130, 45:148, 50:163},
+    6: {5:1, 10:14, 15:40, 20:76,  25:114, 30:152, 35:188, 40:220, 45:248, 50:272},
+    8: {5:3, 10:25, 15:65, 20:115, 25:168, 30:220, 35:268, 40:310, 45:346, 50:376},
+    10:{5:5, 10:38, 15:95, 20:162, 25:230, 30:295, 35:354, 40:404, 45:448, 50:484},
+  },
+  // Yew — extremely slow; conservative hazel proxy (upper bound estimate)
+  yew: {
+    4:{5:0, 10:2,  15:6,  20:12,  25:20,  30:30,  35:40,  40:52,  45:62,  50:72},
+    6:{5:1, 10:4,  15:12, 20:22,  25:36,  30:52,  35:68,  40:86,  45:102, 50:118},
+    8:{5:2, 10:8,  15:20, 20:38,  25:60,  30:84,  35:110, 40:136, 45:160, 50:182},
+  },
+};
+
+const VINTAGE_YEARS = [5,10,15,20,25,30,35,40,45,50];
+// Species authorised for YC 10 (per MNS-M01 §5.3): faster-growing natives only
+const YC10_SPECIES = new Set(['scots_pine', 'aspen']);
+const YC_BASE = [
+  [4, 'YC 4 — Conservative upland'],
+  [6, 'YC 6 — Sheltered lowland'],
+  [8, 'YC 8 — Optimal (proof req.)'],
+];
+const YC_WITH_10 = [...YC_BASE, [10, 'YC 10 — Fast-growing (Scots Pine / Aspen)']];
+// Returns the correct YC option list for a given species key
+function ycOptionsFor(speciesKey) {
+  return YC10_SPECIES.has(speciesKey) ? YC_WITH_10 : YC_BASE;
+}
+// ── Primitive UI components ────────────────────────────────────────────────
+function Label({ children, style }) {
+  return (
+    <span style={{
+      fontFamily: S.fontSans, fontSize: 10, fontWeight: 600,
+      letterSpacing: '0.09em', textTransform: 'uppercase',
+      color: S.textDim, ...style,
+    }}>{children}</span>
+  );
+}
+
+function Field({ label, children, note, style }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, ...style }}>
+      <Label>{label}</Label>
+      {children}
+      {note && <span style={{ fontFamily: S.fontSans, fontSize: 10, color: S.textDim }}>{note}</span>}
+    </div>
+  );
+}
+
+const iBase = {
+  background: S.bg,
+  border: `1px solid ${S.borderStrong}`,
+  borderRadius: 6,
+  padding: '8px 11px',
+  fontFamily: S.font,
+  fontSize: 13,
+  color: S.text,
+  width: '100%',
+  boxSizing: 'border-box',
+  outline: 'none',
+  transition: 'border-color 0.15s',
+};
+
+function NumInput({ value, onChange, min = 0, step = 1, max, style: extra }) {
+  return (
+    <input type="number" value={value} min={min} step={step} max={max}
+      onChange={e => onChange(Number(e.target.value))}
+      style={{ ...iBase, ...extra }}
+      onFocus={e => e.target.style.borderColor = S.accent}
+      onBlur={e => e.target.style.borderColor = S.borderStrong} />
+  );
+}
+
+function Select({ value, onChange, options, style: extra }) {
+  return (
+    <div style={{ position: 'relative', ...extra }}>
+      <select value={value} onChange={e => onChange(e.target.value)}
+        style={{ ...iBase, cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none', paddingRight: 28 }}
+        onFocus={e => e.target.style.borderColor = S.accent}
+        onBlur={e => e.target.style.borderColor = S.borderStrong}>
+        {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+      </select>
+      <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: S.textDim, pointerEvents: 'none', fontSize: 11 }}>▾</span>
+    </div>
+  );
+}
+
+function Toggle({ checked, onChange, label }) {
+  return (
+    <div onClick={() => onChange(!checked)} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+      <div style={{
+        width: 32, height: 18, borderRadius: 9, flexShrink: 0,
+        background: checked ? S.accent : S.border,
+        border: `1px solid ${checked ? S.accent : S.borderStrong}`,
+        position: 'relative', transition: 'all 0.2s',
+      }}>
+        <div style={{ position: 'absolute', top: 2, left: checked ? 14 : 2, width: 12, height: 12, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />
+      </div>
+      <span style={{ fontFamily: S.fontSans, fontSize: 12, color: S.textMuted }}>{label}</span>
+    </div>
+  );
+}
+
+function SectionHeader({ children }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, paddingBottom: 12, borderBottom: `1px solid ${S.border}` }}>
+      <Label style={{ color: S.textDim }}>{children}</Label>
+      <div style={{ flex: 1, height: 1, background: S.border }} />
+    </div>
+  );
+}
+
+function Card({ children, style }) {
+  return (
+    <div style={{ background: S.surface, border: `1px solid ${S.border}`, borderRadius: 8, padding: '20px 24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', ...style }}>
+      {children}
+    </div>
+  );
+}
+
+// Status pill — matches Isometric registry pill style
+function Pill({ children, color, bg, border }) {
+  return (
+    <span style={{
+      fontFamily: S.font, fontSize: 10, letterSpacing: '0.05em',
+      padding: '3px 9px', borderRadius: 5,
+      color: color || S.accent,
+      background: bg || S.accentDim,
+      border: `1px solid ${border || (color || S.accent) + '30'}`,
+      fontWeight: 500,
+    }}>{children}</span>
+  );
+}
+
+function LedgerRow({ label, note, value, color }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: `1px solid ${S.border}` }}>
+      <div>
+        <div style={{ fontFamily: S.fontSans, fontSize: 14, color: S.text }}>{label}</div>
+        {note && <div style={{ fontFamily: S.font, fontSize: 12, color: S.textDim, marginTop: 2 }}>{note}</div>}
+      </div>
+      <span style={{ fontFamily: S.font, fontSize: 14, color: color || S.red, letterSpacing: '-0.01em' }}>{value}</span>
+    </div>
+  );
+}
+
+// ── Species Mix Matrix ─────────────────────────────────────────────────────
+function SpeciesMixMatrix({ rows, onChange, area, coniferPct }) {
+  const totalPct    = rows.reduce((s, r) => s + r.pct, 0);
+  const remaining   = parseFloat((100 - totalPct).toFixed(4));
+  const valid       = Math.abs(remaining) < 0.1;
+  const coniferOver = coniferPct > 20;
+
+  function updateRow(idx, field, val) {
+    onChange(rows.map((r, i) => {
+      if (i !== idx) return r;
+      const updated = { ...r, [field]: val };
+      // When species changes, clamp yc to the new species' maximum available
+      if (field === 'species') {
+        const maxYc = YC10_SPECIES.has(val) ? 10 : 8;
+        if (updated.yc > maxYc) updated.yc = maxYc;
+      }
+      return updated;
+    }));
+  }
+  function addRow() {
+    const used = new Set(rows.map(r => r.species));
+    const next = Object.keys(SPECIES_DATA).find(k => !used.has(k));
+    if (!next) return;
+    onChange([...rows, { species: next, pct: Math.max(0, remaining), yc: 4 }]);
+  }
+  function removeRow(idx) { if (rows.length>1) onChange(rows.filter((_,i)=>i!==idx)); }
+
+  const cols = '1fr 78px 52px 1fr 26px';
+
+  return (
+    <div>
+      {/* Headers */}
+      <div style={{ display:'grid', gridTemplateColumns:cols, gap:8, marginBottom:8, paddingBottom:8, borderBottom:`1px solid ${S.border}` }}>
+        <Label>Species</Label>
+        <Label>Mix %</Label>
+        <Label>Area ha</Label>
+        <Label>Yield Class</Label>
+        <div/>
+      </div>
+
+      {rows.map((row, idx) => {
+        const ha = ((row.pct/100)*area).toFixed(2);
+        return (
+          <div key={idx} style={{ display:'grid', gridTemplateColumns:cols, gap:8, marginBottom:8, alignItems:'center' }}>
+            <Select value={row.species} onChange={v=>updateRow(idx,'species',v)}
+              options={Object.entries(SPECIES_DATA).map(([k,d])=>[k,`${d.label} (SG ${d.sg})`])} />
+
+            <div style={{ position:'relative' }}>
+              <input type="number" value={row.pct} min={0} max={100} step={1}
+                onChange={e=>updateRow(idx,'pct',Math.max(0,Math.min(100,Number(e.target.value))))}
+                style={{ ...iBase, paddingRight:22, textAlign:'right' }}
+                onFocus={e=>e.target.style.borderColor=S.accent}
+                onBlur={e=>e.target.style.borderColor=S.borderStrong} />
+              <span style={{ position:'absolute', right:7, top:'50%', transform:'translateY(-50%)', fontFamily:S.font, fontSize:11, color:S.textDim, pointerEvents:'none' }}>%</span>
+            </div>
+
+            {/* Area ha — read-only, styled like a soft tag */}
+            <div style={{ fontFamily:S.font, fontSize:12, color:S.textMuted, textAlign:'right', paddingRight:4 }}>{ha}</div>
+
+            <Select value={row.yc} onChange={v=>updateRow(idx,'yc',Number(v))}
+              options={ycOptionsFor(row.species)} />
+
+            <button onClick={()=>removeRow(idx)} disabled={rows.length<=1}
+              style={{ background:'transparent', border:'none', cursor:rows.length<=1?'default':'pointer', color:rows.length<=1?S.textDim:S.textMuted, fontSize:16, padding:0, lineHeight:1, display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
+          </div>
+        );
+      })}
+
+      {/* Footer */}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0 8px', marginTop:4, borderTop:`1px solid ${S.borderStrong}` }}>
+        <button onClick={addRow} disabled={rows.length>=Object.keys(SPECIES_DATA).length}
+          style={{ background:S.surface, border:`1px solid ${S.borderStrong}`, borderRadius:6, padding:'5px 12px', fontFamily:S.fontSans, fontSize:11, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase', color:S.textMuted, cursor:'pointer', transition:'all 0.15s' }}
+          onMouseEnter={e=>{e.currentTarget.style.borderColor=S.accent; e.currentTarget.style.color=S.accent;}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor=S.borderStrong; e.currentTarget.style.color=S.textMuted;}}>
+          + Add species
+        </button>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <span style={{ fontFamily:S.fontSans, fontSize:11, color:S.textMuted }}>Total</span>
+          <span style={{ fontFamily:S.font, fontSize:14, color: valid?S.accent : Math.abs(remaining)>10?S.red:S.amber }}>
+            {totalPct.toFixed(1)}%
+          </span>
+          {!valid && <span style={{ fontFamily:S.fontSans, fontSize:10, color:remaining>0?S.amber:S.red }}>
+            {remaining>0 ? `${remaining.toFixed(1)}% unallocated` : `${Math.abs(remaining).toFixed(1)}% over`}
+          </span>}
+          {valid && !coniferOver && <Pill>balanced</Pill>}
+          {valid && coniferOver && (
+            <Pill color={S.red} bg={S.redDim}>§10.1 cap exceeded</Pill>
+          )}
+        </div>
+      </div>
+
+      {/* Progress bar — turns red when conifer cap exceeded */}
+      <div style={{ height:2, background:S.border, borderRadius:1, overflow:'hidden' }}>
+        <div style={{ height:'100%', borderRadius:1, transition:'width 0.3s, background 0.3s', width:`${Math.min(100,totalPct)}%`, background: coniferOver ? S.red : valid ? S.accent : totalPct>100 ? S.red : S.amber }} />
+      </div>
+
+      {/* Conifer cap warning strip — appears only when cap exceeded */}
+      {coniferOver && (
+        <div style={{ marginTop:10, padding:'10px 14px', background:S.redDim, border:`1px solid ${S.red}25`, borderRadius:6, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <div>
+            <div style={{ fontFamily:S.fontSans, fontSize:11, fontWeight:600, color:S.red, marginBottom:3 }}>
+              Protocol Violation — MNS-M01 §10.1
+            </div>
+            <div style={{ fontFamily:S.fontSans, fontSize:10, color:S.red, opacity:0.8 }}>
+              Scots Pine + Yew combined must not exceed 20% of the species mix. Reduce by {(coniferPct - 20).toFixed(1)}%.
+            </div>
+          </div>
+          <div style={{ fontFamily:S.font, fontSize:18, fontWeight:500, color:S.red, marginLeft:16, whiteSpace:'nowrap' }}>
+            {coniferPct.toFixed(1)}<span style={{ fontSize:11, marginLeft:3 }}>/ 20%</span>
+          </div>
+        </div>
+      )}
+
+      {/* SG sourcing footnote */}
+      <div style={{ marginTop:14, paddingTop:12, borderTop:`1px solid ${S.border}` }}>
+        <span style={{ fontFamily:S.fontSans, fontSize:10, color:S.textDim, lineHeight:1.6 }}>
+          * Each SG (Specific Gravity) was selected based on a Jurisdictional Authority first, and Conservativeness second approach. Primary source: UK Woodland Carbon Code (WCC) lookup tables. Secondary source: Global Wood Density Database (Chave et al.) and IPCC 2006 GLs Table 4.13.
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ── Main App ───────────────────────────────────────────────────────────────
+function App() {
+  const [area,          setArea]          = useState(8);
+  const [soilType,      setSoilType]      = useState('mineral');
+  const [vintageYear,   setVintageYear]   = useState(5);
+  const [speciesMix,    setSpeciesMix]    = useState([
+    { species:'oak',   pct:60, yc:4 },
+    { species:'birch', pct:25, yc:6 },
+    { species:'hazel', pct:15, yc:4 },
+  ]);
+  const [targetStems,    setTargetStems]    = useState(2500);
+  const [actualStems,    setActualStems]    = useState(2100);
+  const [fuelLiters,     setFuelLiters]     = useState(200);
+  const [clearedVol,     setClearedVol]     = useState(0);
+  const [burned,         setBurned]         = useState(false);
+  const [displacedSheep, setDisplacedSheep] = useState(0);
+  const [safeHarbor,     setSafeHarbor]     = useState(true);
+  const [browsedScrub,   setBrowsedScrub]   = useState(false);
+  const [rmseInput,      setRmseInput]      = useState(0.0);
+  const [rm01Score,      setRm01Score]      = useState(15.0);
+  const [prevDeficit,    setPrevDeficit]    = useState(0);
+  const [prevIssued,     setPrevIssued]     = useState(0);
+  const [results,        setResults]        = useState({});
+
+  const totalPct       = speciesMix.reduce((s,r)=>s+r.pct, 0);
+  const mixValid       = Math.abs(totalPct-100) < 0.1;
+  // Conifer cap: Scots Pine + Yew combined must not exceed 20% (MNS-M01 §10.1)
+  const coniferPct     = speciesMix.filter(r => r.species === 'scots_pine' || r.species === 'yew').reduce((s,r) => s+r.pct, 0);
+  const coniferValid   = coniferPct <= 20;
+  const enforcedBuffer = rm01Score;
+  const bufferLifted   = rm01Score >= 20;
+
+  useEffect(() => {
+    if (!mixValid)     { setResults({ invalid: 'mix' });     return; }
+    if (!coniferValid) { setResults({ invalid: 'conifer' }); return; }
+
+    // SPF: survival ratio only — §4.2 (absolute stem floor removed)
+    // High-biodiversity low-density planting (e.g. 1,000 stems/ha) is valid;
+    // phantom canopy is controlled separately by densityFactor below.
+    let spf = actualStems / targetStems;
+    if (spf >= 0.8) spf = 1.0;
+    else if (spf < 0.5) spf = 0.0;
+    // else proportional between 0.5–0.8
+
+    // densityFactor: scales UKFC base volume if target density < 2,500 stems/ha standard.
+    // Prevents over-crediting at low planting densities without penalising SPF.
+    // Capped at 1.0 — density above 2,500 stems/ha gives no volume bonus.
+    const STANDARD_STEMS = 2500;
+    const densityFactor = Math.min(1.0, targetStems / STANDARD_STEMS);
+
+    // 1. Freeze lifetime upfront emissions at Yr 5 baseline C_project
+    let cProject_Yr5 = 0;
+    speciesMix.forEach(row => {
+      const vol5 = (UKFC[row.species]?.[row.yc]?.[5] ?? 0) * densityFactor * spf * ((row.pct/100)*area);
+      const agb5 = vol5 * SPECIES_DATA[row.species].sg * BEF;
+      const rs5 = (browsedScrub && BURRELL_RS_SPECIES.has(row.species)) ? BURRELL_RS : R2S;
+      cProject_Yr5 += (agb5 + agb5*rs5) * CF * STOICH;
+    });
+    const soilFactor  = soilType==='mineral' ? 0.05 : 0.15;
+    const peSoil      = cProject_Yr5 * soilFactor;
+    const peFf        = fuelLiters * 0.0026;
+    let   lClearance  = 0;
+    if (clearedVol > 0) { lClearance = clearedVol*CF*STOICH; if (burned) lClearance *= 1.15; }
+    let leActivity=0, leMarket=0;
+    if (!safeHarbor && displacedSheep>0) leActivity = displacedSheep*0.08*10;
+    else if (safeHarbor && displacedSheep>0) leMarket = displacedSheep*0.08*10*0.40;
+    const lifetimeEmissions = peSoil+peFf+lClearance+leActivity+leMarket;
+
+    // 2. Cumulative C_project at selected vintage (each species uses its own YC + densityFactor)
+    let cProject=0, totalVolume=0;
+    const speciesBreakdown = speciesMix.map(row => {
+      const ha         = (row.pct/100)*area;
+      const vBasePerHa = UKFC[row.species]?.[row.yc]?.[vintageYear] ?? 0;
+      const vol        = vBasePerHa * densityFactor * spf * ha;
+      const agb        = vol * SPECIES_DATA[row.species].sg * BEF;
+      const rs         = (browsedScrub && BURRELL_RS_SPECIES.has(row.species)) ? BURRELL_RS : R2S;
+      const c          = (agb + agb*rs) * CF * STOICH;
+      cProject    += c;
+      totalVolume += vol;
+      return { ...row, ha, vol, c, vBasePerHa };
+    });
+
+    // 3. Gross removals & integrity deductions
+    const grossEr    = cProject - lifetimeEmissions;
+    const uDeduction = cProject * (Math.max(0, rmseInput)/100);
+    const bDeduction = grossEr>0 ? grossEr*(enforcedBuffer/100) : 0;
+    const hwm        = Math.max(0, prevDeficit);
+
+    // 4. Cumulative net
+    let cumulativeNetEr = grossEr - uDeduction - bDeduction - hwm;
+    let deficit=0;
+    if (cumulativeNetEr<=0) { deficit=Math.abs(cumulativeNetEr); cumulativeNetEr=0; }
+
+    // 5. Vintage issuance = cumulative net − already issued
+    let vintageNetEr = cumulativeNetEr - Math.max(0, prevIssued);
+    if (vintageNetEr<0) vintageNetEr=0;
+
+    setResults({ speciesBreakdown, totalVolume, cProject, spf, densityFactor, peSoil, peFf, lClearance, leActivity, leMarket, grossEr, uDeduction, bDeduction, hwm, cumulativeNetEr, vintageNetEr, deficit });
+  }, [area, soilType, clearedVol, burned, speciesMix, targetStems, actualStems, vintageYear, fuelLiters, displacedSheep, safeHarbor, browsedScrub, rmseInput, enforcedBuffer, prevDeficit, prevIssued, mixValid, coniferValid]);
+
+  const fmt = (n, d=2) => (n!==undefined && !isNaN(n)) ? n.toFixed(d) : '—';
+  const spfStatus = results.spf===0 ? 'FAIL' : results.spf<1 ? `${(results.spf*100).toFixed(0)}%` : 'PASS';
+  const spfColor  = results.spf===0 ? S.red  : results.spf<1 ? S.amber : S.accent;
+
+  // Topbar button style
+  const tabBtn = {
+    background: S.surface, border:`1px solid ${S.borderStrong}`, borderRadius:6,
+    padding:'6px 14px', fontFamily:S.fontSans, fontSize:12, fontWeight:500,
+    color:S.textMuted, cursor:'default', letterSpacing:'-0.01em',
+  };
+
+  return (
+    <div style={{ minHeight:'100vh', background:S.bg, fontFamily:S.fontSans, color:S.text }}>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" />
+
+      {/* ── Topbar — matches registry tab bar ── */}
+      <div style={{ background:S.surface, borderBottom:`1px solid ${S.border}`, padding:'0 32px', display:'flex', alignItems:'center', justifyContent:'space-between', height:56, position:'sticky', top:0, zIndex:20 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <div style={{ width:8, height:8, borderRadius:'50%', background:S.accent }} />
+            <span style={{ fontFamily:S.fontHead, fontSize:15, fontWeight:600, color:S.text, letterSpacing:'-0.01em' }}>MNS Standard</span>
+          </div>
+          <div style={{ width:1, height:20, background:S.border, margin:'0 4px' }} />
+          {/* Registry-style tab buttons */}
+          {['Module A — Woodland Creation', 'Module B — Peatland', 'Module C — Regen. Ag.'].map((t,i) => (
+            <button key={t} style={{ ...tabBtn, color:i===0?S.text:S.textDim, borderColor:i===0?S.borderStrong:'transparent', background:i===0?S.surface:'transparent' }}>{t}</button>
+          ))}
+        </div>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <Pill color={S.amber} bg={S.amberDim}>MNS-RM01 Active</Pill>
+          {(!results.invalid && results.vintageNetEr > 0 && !(results.deficit > 0))
+            ? <Pill color={S.accent} bg={S.accentDim}>Audit ready</Pill>
+            : <Pill color={S.amber} bg={S.amberDim}>Not ready</Pill>}
+        </div>
+      </div>
+
+      {/* ── Sub-bar ── */}
+      <div style={{ background:S.surface, borderBottom:`1px solid ${S.border}`, padding:'0 32px', display:'flex', alignItems:'center', gap:28, height:38 }}>
+        {[['Protocol','MNS-M01'],['Methodology','UKFC Yield Tables'],['CF','0.47 (IPCC 2006)'],['Registry','Isle of Man']].map(([k,v]) => (
+          <div key={k} style={{ display:'flex', alignItems:'center', gap:7 }}>
+            <Label>{k}</Label>
+            <span style={{ fontFamily:S.font, fontSize:11, color:S.textMuted }}>{v}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Body ── */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 420px', minHeight:'calc(100vh - 94px)' }}>
+
+        {/* LEFT */}
+        <div style={{ padding:'28px 32px', borderRight:`1px solid ${S.border}`, display:'flex', flexDirection:'column', gap:20, overflowY:'auto' }}>
+
+          {/* Site Profile */}
+          <Card>
+            <SectionHeader>Site Profile</SectionHeader>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+              <Field label="Net Planted Area (ha)" note="Excludes MNS-mandated 20% open space">
+                <NumInput value={area} onChange={setArea} min={0.1} step={0.1} />
+              </Field>
+              <Field label="Soil Disturbance Category">
+                <Select value={soilType} onChange={setSoilType} options={[['mineral','Mineral — 5% penalty'],['peat','Organo-Mineral / Peat — 15%']]} />
+              </Field>
+              <Field label="Vintage Year" style={{ gridColumn:'1 / -1' }}>
+                <Select value={vintageYear} onChange={v=>setVintageYear(Number(v))} options={VINTAGE_YEARS.map(y=>[y,y===5?'Yr 5 — Establishment audit':y===50?'Yr 50 — Final':`Yr ${y}`])} />
+              </Field>
+            </div>
+          </Card>
+
+          {/* Species Mix Matrix */}
+          <Card>
+            <SectionHeader>Species Mix Matrix</SectionHeader>
+            <SpeciesMixMatrix rows={speciesMix} onChange={setSpeciesMix} area={area} coniferPct={coniferPct} />
+            {mixValid && speciesMix.length>0 && (
+              <div style={{ marginTop:16, paddingTop:14, borderTop:`1px solid ${S.border}` }}>
+                <Label style={{ display:'block', marginBottom:10 }}>Net Planted Area — {area} ha total</Label>
+                <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                  {speciesMix.map((r,i) => (
+                    <div key={i} style={{ padding:'7px 12px', background:S.bg, border:`1px solid ${S.border}`, borderRadius:6 }}>
+                      <div style={{ fontFamily:S.fontSans, fontSize:10, color:S.textDim, marginBottom:3 }}>{SPECIES_DATA[r.species].label}</div>
+                      <div style={{ fontFamily:S.font, fontSize:12, color:S.textMuted }}>
+                        {((r.pct/100)*area).toFixed(2)} ha
+                        <span style={{ color:S.textDim, marginLeft:8 }}>SG {SPECIES_DATA[r.species].sg}</span>
+                        <span style={{ color:S.textDim, marginLeft:8 }}>YC {r.yc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* Stocking Audit */}
+          <Card>
+            <SectionHeader>Stocking Audit</SectionHeader>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
+              <Field label="Target planting density (stems/ha)">
+                <NumInput value={targetStems} onChange={setTargetStems} />
+              </Field>
+              <Field label="Verified surviving stems/ha">
+                <NumInput value={actualStems} onChange={setActualStems} />
+              </Field>
+            </div>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:spfColor===S.red?S.redDim:spfColor===S.amber?S.amberDim:S.accentDim, border:`1px solid ${spfColor}25`, borderRadius:6, padding:'10px 14px' }}>
+              <div>
+                <span style={{ fontFamily:S.fontSans, fontSize:12, color:spfColor, fontWeight:500 }}>Stocking Performance Factor (SPF)</span>
+                {targetStems < 2500 && (
+                  <div style={{ fontFamily:S.fontSans, fontSize:10, color:S.blue, marginTop:3 }}>
+                    Density factor {(Math.min(1, targetStems/2500)*100).toFixed(0)}% applied — below 2,500 stems/ha standard
+                  </div>
+                )}
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <span style={{ fontFamily:S.font, fontSize:13, color:spfColor }}>{actualStems}/{targetStems}</span>
+                <Pill color={spfColor} bg={spfColor+'15'}>{spfStatus}</Pill>
+              </div>
+            </div>
+          </Card>
+
+          {/* MNS-RM01 Integrity */}
+          <Card>
+            <SectionHeader>MNS-RM01 Integrity Parameters</SectionHeader>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+              <Field label="Model RMSE + Sampling Error (U_t)" note="Module A §8.1 exemption: default 0% unless Predictive Validity fails">
+                <div style={{ position:'relative' }}>
+                  <input type="number" value={rmseInput} min={0} max={50} step={0.1}
+                    onChange={e=>setRmseInput(Number(e.target.value))}
+                    style={{ ...iBase, paddingRight:26 }}
+                    onFocus={e=>e.target.style.borderColor=S.accent}
+                    onBlur={e=>e.target.style.borderColor=S.borderStrong} />
+                  <span style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', fontFamily:S.font, fontSize:11, color:S.textDim, pointerEvents:'none' }}>%</span>
+                </div>
+              </Field>
+              <Field label="Audited RM01 Risk Score → B_t" note={`Buffer B_t = RM01 risk score = ${enforcedBuffer}%${bufferLifted ? ' · at/above 20% market reference' : ''}`}>
+                <div style={{ position:'relative' }}>
+                  <input type="number" value={rm01Score} min={0} max={50} step={0.5}
+                    onChange={e=>setRm01Score(Number(e.target.value))}
+                    style={{ ...iBase, paddingRight:26, color:bufferLifted?S.amber:S.text, borderColor:bufferLifted?S.amber+'60':S.borderStrong }}
+                    onFocus={e=>e.target.style.borderColor=S.accent}
+                    onBlur={e=>{e.target.style.borderColor=bufferLifted?S.amber+'60':S.borderStrong;}} />
+                  <span style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', fontFamily:S.font, fontSize:11, color:S.textDim, pointerEvents:'none' }}>%</span>
+                </div>
+              </Field>
+              <Field label="Previous Ledger Deficit (HWM Carryover)" note="Cumulative deficit — repaid before this period's issuance">
+                <div style={{ position:'relative' }}>
+                  <input type="number" value={prevDeficit} min={0} step={0.01}
+                    onChange={e=>setPrevDeficit(Number(e.target.value))}
+                    style={{ ...iBase, paddingRight:56, color:prevDeficit>0?S.red:S.text, borderColor:prevDeficit>0?S.red+'50':S.borderStrong }}
+                    onFocus={e=>e.target.style.borderColor=S.accent}
+                    onBlur={e=>{e.target.style.borderColor=prevDeficit>0?S.red+'50':S.borderStrong;}} />
+                  <span style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', fontFamily:S.font, fontSize:11, color:S.textDim, pointerEvents:'none' }}>tCO₂e</span>
+                </div>
+              </Field>
+              <Field label="Previously Issued Credits (MBU)" note="Total MBU issued in all prior vintages">
+                <div style={{ position:'relative' }}>
+                  <input type="number" value={prevIssued} min={0} step={1}
+                    onChange={e=>setPrevIssued(Number(e.target.value))}
+                    style={{ ...iBase, paddingRight:48 }}
+                    onFocus={e=>e.target.style.borderColor=S.accent}
+                    onBlur={e=>e.target.style.borderColor=S.borderStrong} />
+                  <span style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', fontFamily:S.font, fontSize:11, color:S.textDim, pointerEvents:'none' }}>MBU</span>
+                </div>
+              </Field>
+            </div>
+            {(bufferLifted||prevDeficit>0) && (
+              <div style={{ marginTop:14, display:'flex', flexDirection:'column', gap:8 }}>
+                {bufferLifted && (
+                  <div style={{ padding:'9px 14px', background:S.amberDim, border:`1px solid ${S.amber}30`, borderRadius:6 }}>
+                    <span style={{ fontFamily:S.fontSans, fontSize:11, color:S.amber }}>Buffer set at the RM01 risk score ({enforcedBuffer}%) — no minimum floor; 20% is the market reference</span>
+                  </div>
+                )}
+                {prevDeficit>0 && (
+                  <div style={{ padding:'9px 14px', background:S.redDim, border:`1px solid ${S.red}25`, borderRadius:6 }}>
+                    <span style={{ fontFamily:S.fontSans, fontSize:11, color:S.red }}>HWM carryover of {prevDeficit.toFixed(2)} tCO₂e — repaid before final issuance</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+
+          {/* Lifetime Emissions */}
+          <Card>
+            <SectionHeader>Lifetime Emissions & Leakage (Yr 0 Deductions)</SectionHeader>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:24 }}>
+              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                <Field label="Fossil fuel (litres of diesel)"><NumInput value={fuelLiters} onChange={setFuelLiters} /></Field>
+                <Field label="Pre-project clearance (m³ biomass)"><NumInput value={clearedVol} onChange={setClearedVol} /></Field>
+                {clearedVol>0 && <Toggle checked={burned} onChange={setBurned} label="Biomass burned on-site (+15% CH₄/N₂O)" />}
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                <Field label="Displaced livestock (headcount)"><NumInput value={displacedSheep} onChange={setDisplacedSheep} /></Field>
+                <Toggle checked={safeHarbor} onChange={setSafeHarbor} label="Herd permanently reduced (safe harbor)" />
+                <Toggle checked={browsedScrub} onChange={setBrowsedScrub} label="Active managed browsing — evidence held (R:S 1.07: hawthorn, blackthorn, sallow)" />
+                {displacedSheep>0 && (
+                  <div style={{ padding:'9px 14px', background:safeHarbor?S.blueDim:S.amberDim, border:`1px solid ${(safeHarbor?S.blue:S.amber)}30`, borderRadius:6 }}>
+                    <span style={{ fontFamily:S.fontSans, fontSize:11, color:safeHarbor?S.blue:S.amber }}>
+                      {safeHarbor?'40% default market leakage applied':'10yr activity-shifting leakage applied'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+        </div>
+
+        {/* RIGHT: Issuance Ledger */}
+        <div style={{ background:S.surfaceAlt, borderLeft:`1px solid ${S.border}`, position:'sticky', top:94, height:'calc(100vh - 94px)', overflowY:'auto', display:'flex', flexDirection:'column' }}>
+
+          <div style={{ padding:'18px 24px 16px', borderBottom:`1px solid ${S.border}`, background:S.surface }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontFamily:S.fontSans, fontSize:13, fontWeight:600, color:S.text, letterSpacing:'-0.01em' }}>Issuance Ledger</span>
+              {results.invalid === 'conifer'
+                ? <Pill color={S.red} bg={S.redDim}>§10.1 Violation</Pill>
+                : <Pill color={S.text} bg={S.bg} border={S.borderStrong}>Year {vintageYear} Audit</Pill>
+              }
+            </div>
+          </div>
+
+          {results.invalid ? (
+            <div style={{ padding:24, display:'flex', alignItems:'center', justifyContent:'center', flex:1 }}>
+              {results.invalid === 'mix' && (
+                <div style={{ textAlign:'center' }}>
+                  <div style={{ fontFamily:S.font, fontSize:13, color:S.amber, marginBottom:8 }}>Mix ≠ 100%</div>
+                  <div style={{ fontFamily:S.fontSans, fontSize:11, color:S.textMuted }}>Adjust species percentages to continue</div>
+                </div>
+              )}
+              {results.invalid === 'conifer' && (
+                <div style={{ width:'100%' }}>
+                  <div style={{ background:S.redDim, border:`1px solid ${S.red}25`, borderRadius:8, padding:'20px 20px 18px' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+                      <div style={{ width:8, height:8, borderRadius:'50%', background:S.red, flexShrink:0 }} />
+                      <span style={{ fontFamily:S.fontSans, fontSize:11, fontWeight:600, color:S.red, textTransform:'uppercase', letterSpacing:'0.06em' }}>Protocol Violation</span>
+                    </div>
+                    <div style={{ fontFamily:S.fontSans, fontSize:13, color:S.text, fontWeight:500, marginBottom:6 }}>
+                      MNS-M01 §10.1 — Native Conifer Cap
+                    </div>
+                    <div style={{ fontFamily:S.fontSans, fontSize:11, color:S.textMuted, lineHeight:1.7, marginBottom:16 }}>
+                      Scots Pine and Yew combined must not exceed 20% of the total species mix. The current allocation breaches this cap and issuance cannot proceed.
+                    </div>
+                    {/* Current vs limit display */}
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                      <div style={{ padding:'10px 12px', background:S.surface, border:`1px solid ${S.red}20`, borderRadius:6 }}>
+                        <div style={{ fontFamily:S.fontSans, fontSize:9, color:S.textDim, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:4 }}>Current conifer mix</div>
+                        <div style={{ fontFamily:S.font, fontSize:20, color:S.red }}>{coniferPct.toFixed(1)}<span style={{ fontSize:11, marginLeft:3 }}>%</span></div>
+                      </div>
+                      <div style={{ padding:'10px 12px', background:S.surface, border:`1px solid ${S.border}`, borderRadius:6 }}>
+                        <div style={{ fontFamily:S.fontSans, fontSize:9, color:S.textDim, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:4 }}>Protocol limit</div>
+                        <div style={{ fontFamily:S.font, fontSize:20, color:S.textMuted }}>20.0<span style={{ fontSize:11, marginLeft:3 }}>%</span></div>
+                      </div>
+                    </div>
+                    <div style={{ marginTop:12, fontFamily:S.font, fontSize:11, color:S.red }}>
+                      Reduce Scots Pine / Yew by {(coniferPct - 20).toFixed(1)}% to unlock issuance.
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ padding:'0 24px 28px', flex:1 }}>
+
+              {/* Gross C_project */}
+              <div style={{ paddingTop:20, paddingBottom:16, borderBottom:`1px solid ${S.border}` }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:14 }}>
+                  <div>
+                    <div style={{ fontFamily:S.fontSans, fontSize:13, color:S.textMuted, marginBottom:2 }}>Gross Project Carbon</div>
+                    <div style={{ fontFamily:S.font, fontSize:11, color:S.textDim }}>C_project (Cumulative · Yr {vintageYear})</div>
+                  </div>
+                  <span style={{ fontFamily:S.font, fontSize:20, fontWeight:500, color:S.text, letterSpacing:'-0.03em' }}>
+                    {fmt(results.cProject)}<span style={{ fontSize:11, color:S.textDim, marginLeft:4 }}>tCO₂e</span>
+                  </span>
+                </div>
+
+                {/* Per-species breakdown — event-ID style green mono */}
+                {results.speciesBreakdown?.length>0 && (
+                  <div style={{ marginBottom:12 }}>
+                    <Label style={{ display:'block', marginBottom:6, fontSize:9 }}>Species contribution</Label>
+                    {results.speciesBreakdown.map((r,i) => (
+                      <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'5px 0 5px 10px', borderBottom:`1px solid ${S.border}` }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                          <div style={{ width:2, height:14, background:S.accent+'60', borderRadius:1 }} />
+                          <div>
+                            {/* Species name in registry accent green mono — mirrors event ID style */}
+                            <div style={{ fontFamily:S.font, fontSize:11, color:S.accent }}>{r.species}_{String(i+1).padStart(2,'0')}</div>
+                            <div style={{ fontFamily:S.fontSans, fontSize:10, color:S.textMuted }}>{SPECIES_DATA[r.species].label}</div>
+                            <div style={{ fontFamily:S.font, fontSize:9, color:S.textDim }}>{r.pct}% · {r.ha.toFixed(2)} ha · SG {SPECIES_DATA[r.species].sg} · YC {r.yc} · {r.vBasePerHa} m³/ha × DF {(Math.min(1,targetStems/2500)).toFixed(2)} × SPF {(results.spf??1).toFixed(2)}</div>
+                          </div>
+                        </div>
+                        <span style={{ fontFamily:S.font, fontSize:11, color:S.textMuted }}>{r.c.toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
+                  {[['Volume',`${fmt(results.totalVolume,1)} m³`],['BEF',`${BEF}`],['R:S',`${R2S}${browsedScrub ? ' / 1.07' : ''}`],['CF',`${CF}`],['44/12',`${STOICH.toFixed(3)}`]].map(([k,v])=>(
+                    <div key={k}>
+                      <div style={{ fontFamily:S.fontSans, fontSize:9, color:S.textDim, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:2 }}>{k}</div>
+                      <div style={{ fontFamily:S.font, fontSize:11, color:S.textMuted }}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Absolute Lifetime Emissions */}
+              <div style={{ paddingTop:14 }}>
+                <Label style={{ display:'block', marginBottom:8 }}>Absolute Lifetime Emissions</Label>
+                {[
+                  ['Soil disturbance', results.peSoil,      `${soilType==='mineral'?'5':'15'}% of Yr 5 Baseline C_project`, null],
+                  ['Fossil fuels',     results.peFf,         `${fuelLiters}L × 0.0026`, null],
+                  ...(results.lClearance>0 ? [['Pre-project clearance', results.lClearance, burned?'+15% CH₄/N₂O penalty':null, null]] : []),
+                  ...(results.leActivity>0 ? [['Activity-shifting leakage', results.leActivity, '10yr @ 0.08/head', null]] : []),
+                  ...(results.leMarket>0   ? [['Market leakage', results.leMarket, '40% default displacement', S.blue]] : []),
+                ].map(([label,val,note,c])=>(
+                  <LedgerRow key={label} label={label} note={note} value={`−${fmt(val)}`} color={c||S.red} />
+                ))}
+              </div>
+
+              <div style={{ display:'flex', justifyContent:'space-between', padding:'12px 0', borderBottom:`1px solid ${S.borderStrong}`, marginTop:4 }}>
+                <span style={{ fontFamily:S.fontSans, fontSize:12, color:S.textMuted, fontWeight:500 }}>Net Gross Removals</span>
+                <span style={{ fontFamily:S.font, fontSize:15, color:S.text }}>{fmt(results.grossEr)} tCO₂e</span>
+              </div>
+
+              {/* Integrity Deductions */}
+              <div style={{ paddingTop:14 }}>
+                <Label style={{ display:'block', marginBottom:8 }}>Integrity Deductions</Label>
+                <LedgerRow label="LB95 uncertainty" note={`U_t @ ${rmseInput.toFixed(1)}% of C_project`} value={`−${fmt(results.uDeduction)}`} color={S.amber} />
+                <LedgerRow
+                  label={`Buffer network${bufferLifted?' (RM01 elevated)':''}`}
+                  note={`B_t @ ${enforcedBuffer}% · from RM01 risk score`}
+                  value={`−${fmt(results.bDeduction)}`}
+                  color={bufferLifted?S.red:S.amber}
+                />
+                {results.hwm>0 && <LedgerRow label="HWM deficit repayment" note="Carried from previous audit period" value={`−${fmt(results.hwm)}`} color={S.red} />}
+              </div>
+
+              {/* Final issuance block */}
+              <div style={{ marginTop:18 }}>
+                <div style={{ background:S.surface, border:`1px solid ${S.border}`, borderRadius:8, padding:'18px 20px', boxShadow:'0 1px 3px rgba(0,0,0,0.04)' }}>
+
+                  {/* Cumulative total */}
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:10, paddingBottom:10, borderBottom:`1px dashed ${S.border}` }}>
+                    <Label>Total Cumulative Carbon</Label>
+                    <span style={{ fontFamily:S.font, fontSize:14, color:S.text }}>{fmt(results.cumulativeNetEr)} MBU</span>
+                  </div>
+
+                  {/* Deduct prior issuances */}
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:16 }}>
+                    <Label style={{ color:S.amber }}>− Previously Issued (Vintages)</Label>
+                    <span style={{ fontFamily:S.font, fontSize:13, color:S.amber }}>{fmt(prevIssued)} MBU</span>
+                  </div>
+
+                  {/* Vintage label */}
+                  <Label style={{ display:'block', marginBottom:8, color:results.vintageNetEr>0?S.accent:S.red }}>
+                    Vintage Issuance (New MBU)
+                  </Label>
+
+                  {results.vintageNetEr>0 ? (
+                    <div>
+                      <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
+                        <span style={{ fontFamily:S.fontHead, fontSize:44, fontWeight:500, color:S.accent, letterSpacing:'-0.04em', lineHeight:1 }}>
+                          {Math.round(results.vintageNetEr).toLocaleString()}
+                        </span>
+                        <span style={{ fontFamily:S.fontSans, fontSize:13, color:S.accent, fontWeight:600, opacity:0.7 }}>MBU</span>
+                      </div>
+                      <div style={{ marginTop:8, fontFamily:S.fontSans, fontSize:11, color:S.textMuted }}>Eligible for current verification cycle</div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
+                        <span style={{ fontFamily:S.fontHead, fontSize:40, fontWeight:500, color:S.red, letterSpacing:'-0.04em', lineHeight:1 }}>0</span>
+                        <span style={{ fontFamily:S.fontSans, fontSize:13, color:S.red, fontWeight:600, opacity:0.7 }}>MBU</span>
+                      </div>
+                      <div style={{ marginTop:8, fontFamily:S.fontSans, fontSize:11, color:S.red }}>
+                        {results.cumulativeNetEr===0 ? `high-water mark deficit: −${fmt(results.deficit)}` : 'No new growth beyond previous issuance'}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Stat chips */}
+              <div style={{ marginTop:12, display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
+                {[
+                  ['Buffer held', fmt(results.bDeduction), S.textMuted],
+                  ['U_t adj.',    fmt(results.uDeduction), S.textMuted],
+                  ['Efficiency',  results.cProject>0?`${((results.cumulativeNetEr/results.cProject)*100).toFixed(1)}%`:'—',
+                    results.cProject>0&&results.cumulativeNetEr/results.cProject>0.5?S.accent:S.amber],
+                ].map(([k,v,c])=>(
+                  <div key={k} style={{ padding:'8px 10px', background:S.surface, border:`1px solid ${S.border}`, borderRadius:6 }}>
+                    <div style={{ fontFamily:S.fontSans, fontSize:9, color:S.textDim, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:3 }}>{k}</div>
+                    <div style={{ fontFamily:S.font, fontSize:12, color:c }}>{v}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Export button — matches registry Export button style */}
+              <button
+                style={{ marginTop:14, width:'100%', padding:'10px 0', background:S.surface, border:`1px solid ${S.borderStrong}`, borderRadius:6, fontFamily:S.fontSans, fontSize:12, fontWeight:500, color:S.textMuted, cursor:'pointer', transition:'all 0.15s', letterSpacing:'-0.01em' }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor=S.accent; e.currentTarget.style.color=S.accent;}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor=S.borderStrong; e.currentTarget.style.color=S.textMuted;}}>
+                ↓ Export results
+              </button>
+
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>
