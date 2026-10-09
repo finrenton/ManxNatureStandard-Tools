@@ -135,8 +135,6 @@ function App() {
   const [financial, setFinancial] = useState(0);
   const [management, setManagement] = useState(0);
   const [tenure, setTenure] = useState(0);
-  const [assessmentVerified, setAssessmentVerified] = useState(false);
-  const [poolStressTestApproved, setPoolStressTestApproved] = useState(false);
   const [scores, setScores] = useState({ part1: 10, part2: 0, total: 10, final: 10, breakdown: { windDamage: 3.5, drought: 2.5, pests: 3, fire: 1 } });
 
   useEffect(() => {
@@ -153,10 +151,9 @@ function App() {
 
   // Provisional MNS screening index. These points are policy weights, not probabilities of reversal.
   const ineligible = scores.total > 25;
-  const reductionApproved = assessmentVerified && poolStressTestApproved && !ineligible;
-  // Provisional conversion bands: reductions remain disabled unless both approval gates are recorded.
-  const assessedRate = scores.total <= 9 ? 12 : scores.total <= 12 ? 14 : scores.total <= 16 ? 16 : scores.total <= 20 ? 18 : 20;
-  const bufferContribution = ineligible ? null : (reductionApproved ? assessedRate : 20);
+  // Provisional score-to-rate bands. Use only when formally authorised under MNS governance.
+  const assessedRate = scores.total <= 9 ? 12 : scores.total <= 12 ? 14 : scores.total <= 16 ? 16 : scores.total <= 20 ? 18 : 20; // 20% is the highest score band here, not the standalone default.
+  const bufferContribution = ineligible ? null : assessedRate;
   const isElevated = scores.total >= 16;
   const selectCls = "w-full text-[13px] font-medium bg-white border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition-all appearance-none cursor-pointer";
 
@@ -197,17 +194,9 @@ function App() {
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <div className="text-[12px] font-mono text-stone-400 tracking-widest uppercase mb-2">Buffer Contribution Calculator</div>
+              <div className="text-[12px] font-mono text-stone-400 tracking-widest uppercase mb-2">MNS-RM01 · Score-based risk assessment</div>
               <h1 className="text-2xl font-semibold text-stone-800 tracking-tight">Permanence Risk Assessment</h1>
-              <p className="text-sm text-stone-400 mt-1">20% default contribution. A verified risk assessment may justify a reduction to 12–18%, subject to pool stress-test approval.</p>
-            </div>
-            <div className="hidden md:grid grid-cols-1 gap-px rounded-md overflow-hidden text-center" style={{ background: S.border, border: `1px solid ${S.border}` }}>
-              {[["20.0%", "Default buffer contribution"]].map(([v, l]) => (
-                <div key={l} className="px-5 py-2.5" style={{ background: S.surface }}>
-                  <div className="font-mono text-base font-semibold" style={{ color: S.text }}>{v}</div>
-                  <div className="text-[12px] mt-0.5 uppercase tracking-wide" style={{ color: S.textDim }}>{l}</div>
-                </div>
-              ))}
+              <p className="text-sm text-stone-400 mt-1">Score natural-disturbance and project-specific risks to derive the provisional buffer contribution rate.</p>
             </div>
           </div>
 
@@ -215,32 +204,6 @@ function App() {
 
             {/* ────── LEFT: INPUTS ────── */}
             <div className="lg:col-span-7 space-y-5">
-
-              {/* Reduction pathway approval gates */}
-              <div className="rounded-xl p-6" style={{ background: S.surface, border: `1px solid ${S.border}` }}>
-                <SectionHeader
-                  icon={ICONS.shield}
-                  title="Reduction pathway — approval gates"
-                  subtitle="The 20% default applies unless both conditions below are formally satisfied. Selecting these controls is illustrative only and does not constitute formal approval."
-                />
-                <div className="space-y-3">
-                  <label className="flex items-start gap-3 p-3 rounded-lg cursor-pointer" style={{ border: `1px solid ${assessmentVerified ? S.borderStrong : S.border}`, background: assessmentVerified ? S.surfaceAlt : S.surface }}>
-                    <input type="checkbox" className="mt-1" checked={assessmentVerified} onChange={e => setAssessmentVerified(e.target.checked)} />
-                    <span className="flex-1">
-                      <span className="block text-[13px] font-medium" style={{ color: S.text }}>Independent risk assessment verified</span>
-                      <span className="block text-[12px] mt-0.5" style={{ color: S.textDim }}>Site-specific evidence, financial information, management capability and tenure have been independently reviewed.</span>
-                    </span>
-                  </label>
-                  <label className="flex items-start gap-3 p-3 rounded-lg cursor-pointer" style={{ border: `1px solid ${poolStressTestApproved ? S.borderStrong : S.border}`, background: poolStressTestApproved ? S.surfaceAlt : S.surface }}>
-                    <input type="checkbox" className="mt-1" checked={poolStressTestApproved} onChange={e => setPoolStressTestApproved(e.target.checked)} />
-                    <span className="flex-1">
-                      <span className="block text-[13px] font-medium" style={{ color: S.text }}>MNS pooled-buffer stress test approved</span>
-                      <span className="block text-[12px] mt-0.5" style={{ color: S.textDim }}>The reserve has passed the formally adopted tests for correlated losses and replenishment capacity.</span>
-                    </span>
-                  </label>
-                </div>
-                <p className="text-[11px] mt-3 leading-relaxed" style={{ color: S.textDim }}>Until both gates are approved through MNS governance, the calculator retains the 20% default. The illustrative scenarios published with this tool are not, by themselves, approval of the live buffer pool.</p>
-              </div>
 
               {/* Climate Risk */}
               <div className="rounded-xl p-6" style={{ background: S.surface, border: `1px solid ${S.border}` }}>
@@ -376,7 +339,7 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="p-5 space-y-5 scorecard-enter" key={`${scores.total}-${bufferContribution}-${reductionApproved}`} style={{ background: S.surface }}>
+                  <div className="p-5 space-y-5 scorecard-enter" key={`${scores.total}-${bufferContribution}`} style={{ background: S.surface }}>
 
                     {/* P1 rows */}
                     <div>
@@ -425,7 +388,7 @@ function App() {
                       style={{ background: ineligible ? S.redDim : isElevated ? S.amberDim : 'color-mix(in srgb, #7E4E8A 6%, white)', borderColor: ineligible ? 'rgba(180,69,60,0.35)' : isElevated ? 'rgba(140,109,83,0.35)' : 'rgba(126,78,138,0.25)' }}>
                       <div className="text-[12px] uppercase tracking-widest mb-2"
                         style={{ color: ineligible ? S.red : isElevated ? S.amber : '#7E4E8A' }}>
-                        {ineligible ? "Eligibility review required" : "Buffer contribution required"}
+                        {ineligible ? "Eligibility review required" : "Score-derived buffer contribution rate"}
                       </div>
                       <div className="text-5xl font-semibold tabular-nums leading-none"
                         style={{ color: ineligible ? S.red : isElevated ? S.amber : '#6F4279' }}>
@@ -433,64 +396,24 @@ function App() {
                       </div>
                       <div className="text-[12px] mt-2" style={{ color: ineligible ? S.red : S.textMuted }}>
                         {ineligible
-                          ? "Screening score exceeds the provisional 25-point limit. Mitigation and reassessment are required; a larger buffer cannot replace eligibility requirements."
-                          : reductionApproved
-                            ? `Provisional risk-adjusted rate: ${assessedRate}%. The lower rate is enabled because both approval gates are marked complete; evidence and approvals must be recorded outside this calculator.`
-                            : "20% default applies. A reduction to 12–18% remains unavailable until both independent assessment and pooled-buffer stress-test approval are formally recorded."}
+                          ? "Screening score exceeds the provisional 25-point limit. Eligibility review, mitigation and reassessment are required; a higher contribution cannot replace these steps."
+                          : "Rate mapped from the total screening score using the current provisional conversion bands. Use only where MNS governance has authorised this method."}
                       </div>
                     </div>
 
                   </div>
                 </div>
 
-                {/* Export */}
-                <button disabled={ineligible} className="w-full text-white text-sm font-medium py-3 rounded-md transition-colors flex items-center justify-center gap-2 group" style={{ background: ineligible ? '#B8B8B4' : '#7E4E8A', cursor: ineligible ? 'not-allowed' : 'pointer' }} onMouseEnter={e=>{ if(!ineligible) e.currentTarget.style.background='#6F4279'; }} onMouseLeave={e=>{ if(!ineligible) e.currentTarget.style.background='#7E4E8A'; }}>
-                  <Icon d={ICONS.calc} size={14} stroke="currentColor" />
-                  Export to MNS Calculator
-                  <Icon d={ICONS.arrow} size={14} stroke="currentColor" />
-                </button>
-
                 {/* VVB footnote */}
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: S.surfaceAlt, border: `1px solid ${S.border}` }}>
                   <Icon d={ICONS.check} size={13} stroke="#16a34a" />
-                  <span className="text-[12px] text-stone-400">Provisional screening output · MNS-RM01</span>
+                  <span className="text-[12px] text-stone-400">Provisional score and rate output · MNS-RM01</span>
                 </div>
 
               </div>
             </div>
           </div>
 
-          {/* ── Methodology and transparency notes ── */}
-          <div className="mt-8 rounded-xl p-6" style={{ background: S.surface, border: `1px solid ${S.border}` }}>
-            <SectionHeader
-              icon={ICONS.file}
-              title="Methodology, evidence and limitations"
-              subtitle="The calculator is a provisional screening tool. It does not estimate an actuarially precise probability of carbon reversal."
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-[13px] leading-relaxed" style={{ color: S.textMuted }}>
-              <div>
-                <h3 className="font-semibold mb-1" style={{ color: S.text }}>Default and potential reductions</h3>
-                <p>The standard default is a 20% buffer contribution. An independently verified risk assessment may produce a provisional rate of 12%, 14%, 16%, 18% or 20%, according to the screening bands displayed by the calculator. A reduction below 20% remains disabled unless the independent assessment and formal pooled-buffer stress-test gates are both approved.</p>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1" style={{ color: S.text }}>What the scores mean</h3>
-                <p>The displayed points are provisional policy weights adapted from the earlier MNS matrix. They are not percentages of annual loss, lifetime reversal probabilities, or empirically calibrated Isle of Man carbon-loss rates. The provisional conversion bands are: 9 points or fewer = 12%; above 9 to 12 = 14%; above 12 to 16 = 16%; above 16 to 20 = 18%; above 20 to 25 = 20%; above 25 = eligibility review. These bands are proposed MNS policy settings, not scientific reversal probabilities, and require validation before formal adoption. The 12% floor is informed by external carbon-crediting precedent, not established by Isle of Man data.</p>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1" style={{ color: S.text }}>Local evidence</h3>
-                <p>Published DEFA records document extensive historic plantation windblow and severe larch losses associated with <em>Phytophthora ramorum</em>. The Government's 2025 climate-risk assessment identifies material risks from drought, wildfire and forestry pests, and risks to natural carbon stores. These sources establish relevant hazards, but do not quantify site-specific reversal probabilities.</p>
-                <p className="mt-2"><a className="underline" href="https://consult.gov.im/environment-food-and-agriculture/isle-of-man-plantation-management-plans-2025-2045/supporting_documents/national-plantation-management-plan-2025-chpdf" target="_blank" rel="noreferrer">DEFA National Plantation Management Plan 2025–2045</a></p>
-                <p><a className="underline" href="https://www.researchgate.net/publication/401437402_Climate_Change_Risk_and_Opportunities_Assessment_to_inform_Adaptation_Planning_for_the_Isle_of_Man" target="_blank" rel="noreferrer">Isle of Man Climate Change Risk and Opportunities Assessment (2025)</a></p>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1" style={{ color: S.text }}>Pooled-buffer stress test</h3>
-                <p>In an illustrative scenario, 25% of the portfolio experiencing a 50% carbon loss produces a 12.5% portfolio-wide reversal. A 12% reserve would be short by 0.5 percentage points; a 20% reserve would have 7.5 points remaining before replenishment. These are scenario assumptions, not predicted event probabilities. The live MNS portfolio, reserve balance, habitat concentration and replenishment arrangements must be assessed before reductions to 12% are enabled.</p>
-              </div>
-            </div>
-            <div className="mt-5 pt-4 border-t text-[12px] leading-relaxed" style={{ borderColor: S.border, color: S.textDim }}>
-              <strong style={{ color: S.text }}>Governance note:</strong> a high buffer contribution does not substitute for mitigation, legal permanence, monitoring or eligibility. Projects that exceed the provisional screening threshold must be mitigated and reassessed. The 25-point threshold and the 12% floor are proposed MNS policy settings, not rules prescribed by ICVCM. The current hazard controls are woodland-oriented; habitat-specific scoring is required before this matrix is used to authorise reduced contributions for peatland, wetland or blue-carbon projects.
-            </div>
-          </div>
         </div>
       </div>
     </>
