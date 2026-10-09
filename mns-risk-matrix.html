@@ -78,11 +78,11 @@ const RiskRow = ({ label, value, base }) => {
       <div className="flex items-center gap-2">
         {delta !== 0 && (
           <Badge variant={variant}>
-            {delta > 0 ? "+" : ""}{delta.toFixed(1)}%
+            {delta > 0 ? "+" : ""}{delta.toFixed(1)} pts
           </Badge>
         )}
         <span className={`font-mono text-sm font-medium tabular-nums w-10 text-right ${delta > 0 ? "text-red-600" : delta < 0 ? "text-emerald-600" : "text-stone-600"}`}>
-          {value.toFixed(1)}%
+          {value.toFixed(1)} pts
         </span>
       </div>
     </div>
@@ -106,7 +106,7 @@ const CheckOption = ({ label, detail, effect, checked, onChange }) => (
       <div className="text-[12px] mt-0.5" style={{ color: S.textDim }}>{detail}</div>
     </div>
     <Badge variant={effect > 0 ? "up" : "down"}>
-      {effect > 0 ? "+" : ""}{effect.toFixed(1)}%
+      {effect > 0 ? "+" : ""}{effect.toFixed(1)} pts
     </Badge>
   </label>
 );
@@ -128,7 +128,6 @@ function App() {
   const [highDams, setHighDams] = useState(false);
   const [peatSoils, setPeatSoils] = useState(false);
   const [sandySoils, setSandySoils] = useState(false);
-  const [riparianBuffers, setRiparianBuffers] = useState(false);
   const [lowSpecies, setLowSpecies] = useState(false);
   const [highSpecies, setHighSpecies] = useState(false);
   const [heathBorder, setHeathBorder] = useState(false);
@@ -136,22 +135,29 @@ function App() {
   const [financial, setFinancial] = useState(0);
   const [management, setManagement] = useState(0);
   const [tenure, setTenure] = useState(0);
-  const [scores, setScores] = useState({ part1: 10, part2: 0, total: 10, final: 10, breakdown: { windthrow: 4, drought: 2, pests: 3, fire: 1 } });
+  const [assessmentVerified, setAssessmentVerified] = useState(false);
+  const [poolStressTestApproved, setPoolStressTestApproved] = useState(false);
+  const [scores, setScores] = useState({ part1: 10, part2: 0, total: 10, final: 10, breakdown: { windDamage: 3.5, drought: 2.5, pests: 3, fire: 1 } });
 
   useEffect(() => {
-    const windthrow = 4.0 + (highDams ? 2.0 : 0) + (peatSoils ? 1.0 : 0);
-    const drought   = 2.0 + (sandySoils ? 1.0 : 0) - (riparianBuffers ? 1.0 : 0);
+    const windDamage = 3.5 + (highDams ? 2.0 : 0) + (peatSoils ? 1.0 : 0);
+    const drought   = 2.5 + (sandySoils ? 1.0 : 0);
     const pests     = 3.0 + (lowSpecies ? 2.0 : 0) - (highSpecies ? 1.0 : 0);
     const fire      = 1.0 + (heathBorder ? 2.0 : 0) - (fireBreaks ? 0.5 : 0);
-    const part1 = windthrow + drought + pests + fire;
+    const part1 = windDamage + drought + pests + fire;
     const part2 = financial + management + tenure;
     const total = part1 + part2;
     const final = total;
-    setScores({ part1, part2, total, final, breakdown: { windthrow, drought, pests, fire } });
-  }, [highDams, peatSoils, sandySoils, riparianBuffers, lowSpecies, highSpecies, heathBorder, fireBreaks, financial, management, tenure]);
+    setScores({ part1, part2, total, final, breakdown: { windDamage, drought, pests, fire } });
+  }, [highDams, peatSoils, sandySoils, lowSpecies, highSpecies, heathBorder, fireBreaks, financial, management, tenure]);
 
-  const isElevated = scores.final >= 20;
-    const ineligible = scores.final > 25;
+  // Provisional MNS screening index. These points are policy weights, not probabilities of reversal.
+  const ineligible = scores.total > 25;
+  const reductionApproved = assessmentVerified && poolStressTestApproved && !ineligible;
+  // Provisional conversion bands: reductions remain disabled unless both approval gates are recorded.
+  const assessedRate = scores.total <= 9 ? 12 : scores.total <= 12 ? 14 : scores.total <= 16 ? 16 : scores.total <= 20 ? 18 : 20;
+  const bufferContribution = ineligible ? null : (reductionApproved ? assessedRate : 20);
+  const isElevated = scores.total >= 16;
   const selectCls = "w-full text-[13px] font-medium bg-white border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition-all appearance-none cursor-pointer";
 
   return (
@@ -181,7 +187,7 @@ function App() {
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 text-[12px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block animate-pulse" />
-                MNS-RM01 · Live
+                MNS-RM01 · Provisional
               </div>
             </div>
           </div>
@@ -191,12 +197,12 @@ function App() {
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <div className="text-[12px] font-mono text-stone-400 tracking-widest uppercase mb-2">Buffer Network Contribution Tool</div>
+              <div className="text-[12px] font-mono text-stone-400 tracking-widest uppercase mb-2">Buffer Contribution Calculator</div>
               <h1 className="text-2xl font-semibold text-stone-800 tracking-tight">Permanence Risk Assessment</h1>
-              <p className="text-sm text-stone-400 mt-1">Climate risk baselines applied for the Isle of Man Biosphere</p>
+              <p className="text-sm text-stone-400 mt-1">20% default contribution. A verified risk assessment may justify a reduction to 12–18%, subject to pool stress-test approval.</p>
             </div>
             <div className="hidden md:grid grid-cols-1 gap-px rounded-md overflow-hidden text-center" style={{ background: S.border, border: `1px solid ${S.border}` }}>
-              {[["10.0%", "Base climate rate"]].map(([v, l]) => (
+              {[["20.0%", "Default buffer contribution"]].map(([v, l]) => (
                 <div key={l} className="px-5 py-2.5" style={{ background: S.surface }}>
                   <div className="font-mono text-base font-semibold" style={{ color: S.text }}>{v}</div>
                   <div className="text-[12px] mt-0.5 uppercase tracking-wide" style={{ color: S.textDim }}>{l}</div>
@@ -210,64 +216,93 @@ function App() {
             {/* ────── LEFT: INPUTS ────── */}
             <div className="lg:col-span-7 space-y-5">
 
+              {/* Reduction pathway approval gates */}
+              <div className="rounded-xl p-6" style={{ background: S.surface, border: `1px solid ${S.border}` }}>
+                <SectionHeader
+                  icon={ICONS.shield}
+                  title="Reduction pathway — approval gates"
+                  subtitle="The 20% default applies unless both conditions below are formally satisfied. Selecting these controls is illustrative only and does not constitute formal approval."
+                />
+                <div className="space-y-3">
+                  <label className="flex items-start gap-3 p-3 rounded-lg cursor-pointer" style={{ border: `1px solid ${assessmentVerified ? S.borderStrong : S.border}`, background: assessmentVerified ? S.surfaceAlt : S.surface }}>
+                    <input type="checkbox" className="mt-1" checked={assessmentVerified} onChange={e => setAssessmentVerified(e.target.checked)} />
+                    <span className="flex-1">
+                      <span className="block text-[13px] font-medium" style={{ color: S.text }}>Independent risk assessment verified</span>
+                      <span className="block text-[12px] mt-0.5" style={{ color: S.textDim }}>Site-specific evidence, financial information, management capability and tenure have been independently reviewed.</span>
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-3 p-3 rounded-lg cursor-pointer" style={{ border: `1px solid ${poolStressTestApproved ? S.borderStrong : S.border}`, background: poolStressTestApproved ? S.surfaceAlt : S.surface }}>
+                    <input type="checkbox" className="mt-1" checked={poolStressTestApproved} onChange={e => setPoolStressTestApproved(e.target.checked)} />
+                    <span className="flex-1">
+                      <span className="block text-[13px] font-medium" style={{ color: S.text }}>MNS pooled-buffer stress test approved</span>
+                      <span className="block text-[12px] mt-0.5" style={{ color: S.textDim }}>The reserve has passed the formally adopted tests for correlated losses and replenishment capacity.</span>
+                    </span>
+                  </label>
+                </div>
+                <p className="text-[11px] mt-3 leading-relaxed" style={{ color: S.textDim }}>Until both gates are approved through MNS governance, the calculator retains the 20% default. The illustrative scenarios published with this tool are not, by themselves, approval of the live buffer pool.</p>
+              </div>
+
               {/* Climate Risk */}
               <div className="rounded-xl p-6" style={{ background: S.surface, border: `1px solid ${S.border}` }}>
                 <SectionHeader
                   icon={ICONS.wind}
-                  title="Part 1 — Site-Specific Climate Risk Modifiers"
-                  subtitle="Base climate risks are applied automatically for the Isle of Man. Select any physical site modifiers below."
+                  title="Part 1 — Site conditions affecting risk"
+                  subtitle="Provisional woodland screening points informed by local hazards. Select only factors supported by site evidence; points are not percentages of carbon loss."
                 />
 
                 <div className="grid grid-cols-2 gap-5">
-                  {/* Windthrow */}
+                  {/* Wind damage */}
                   <div>
-                    <div className="flex items-center gap-1.5 mb-3">
+                    <div className="flex items-center gap-1.5 mb-1">
                       <Icon d={ICONS.wind} size={12} stroke="#a8a29e" />
-                      <span className="text-[12px] font-semibold text-stone-400 uppercase tracking-widest">Windthrow</span>
-                      <span className="ml-auto font-mono text-[12px] text-stone-400">base 4.0%</span>
+                      <span className="text-[12px] font-semibold text-stone-400 uppercase tracking-widest">Wind damage</span>
+                      <span className="ml-auto font-mono text-[12px] text-stone-400">base 3.5 pts</span>
                     </div>
+                    <p className="text-[11px] text-stone-400 mb-3 leading-snug">Trees uprooted or stems broken by wind.</p>
                     <div className="space-y-2">
-                      <CheckOption label="High Upland Exposure" detail="Mean DAMS score ≥ 15" effect={2.0} checked={highDams} onChange={e => setHighDams(e.target.checked)} />
-                      <CheckOption label="Poor Root Anchorage" detail="Organo-mineral / peat soils" effect={1.0} checked={peatSoils} onChange={e => setPeatSoils(e.target.checked)} />
+                      <CheckOption label="High wind exposure" detail="DAMS score of 15 or higher" effect={2.0} checked={highDams} onChange={e => setHighDams(e.target.checked)} />
+                      <CheckOption label="Poor root stability" detail="Peat or shallow peaty soil (organo-mineral soil)" effect={1.0} checked={peatSoils} onChange={e => setPeatSoils(e.target.checked)} />
                     </div>
                   </div>
 
                   {/* Drought */}
                   <div>
-                    <div className="flex items-center gap-1.5 mb-3">
+                    <div className="flex items-center gap-1.5 mb-1">
                       <Icon d={ICONS.sun} size={12} stroke="#a8a29e" />
                       <span className="text-[12px] font-semibold text-stone-400 uppercase tracking-widest">Drought</span>
-                      <span className="ml-auto font-mono text-[12px] text-stone-400">base 2.0%</span>
+                      <span className="ml-auto font-mono text-[12px] text-stone-400">base 2.5 pts</span>
                     </div>
+                    <p className="text-[11px] text-stone-400 mb-3 leading-snug">Risk of trees and other vegetation suffering from lack of water.</p>
                     <div className="space-y-2">
-                      <CheckOption label="Free-Draining Soils" detail="> 50% sandy, south-facing" effect={1.0} checked={sandySoils} onChange={e => setSandySoils(e.target.checked)} />
-                      <CheckOption label="Riparian Buffers Present" detail="Maintains site humidity" effect={-1.0} checked={riparianBuffers} onChange={e => setRiparianBuffers(e.target.checked)} />
+                      <CheckOption label="Sandy, fast-draining soils" detail="More than 50% sandy; south-facing site" effect={1.0} checked={sandySoils} onChange={e => setSandySoils(e.target.checked)} />
                     </div>
                   </div>
 
                   {/* Pests */}
                   <div>
-                    <div className="flex items-center gap-1.5 mb-3">
+                    <div className="flex items-center gap-1.5 mb-1">
                       <Icon d={ICONS.bug} size={12} stroke="#a8a29e" />
-                      <span className="text-[12px] font-semibold text-stone-400 uppercase tracking-widest">Pests & Pathogens</span>
-                      <span className="ml-auto font-mono text-[12px] text-stone-400">base 3.0%</span>
+                      <span className="text-[12px] font-semibold text-stone-400 uppercase tracking-widest">Pests and diseases</span>
+                      <span className="ml-auto font-mono text-[12px] text-stone-400">base 3.0 pts</span>
                     </div>
+                    <p className="text-[11px] text-stone-400 mb-3 leading-snug">Damage caused by insects, fungi or other harmful organisms.</p>
                     <div className="space-y-2">
-                      <CheckOption label="Low Genetic Resilience" detail="< 3 dominant canopy species" effect={2.0} checked={lowSpecies} onChange={e => { setLowSpecies(e.target.checked); if (e.target.checked) setHighSpecies(false); }} />
-                      <CheckOption label="High Genetic Resilience" detail="≥ 5 distinct native species" effect={-1.0} checked={highSpecies} onChange={e => { setHighSpecies(e.target.checked); if (e.target.checked) setLowSpecies(false); }} />
+                      <CheckOption label="Low tree-species diversity" detail="Fewer than 3 dominant canopy species" effect={2.0} checked={lowSpecies} onChange={e => { setLowSpecies(e.target.checked); if (e.target.checked) setHighSpecies(false); }} />
+                      <CheckOption label="High native-species diversity" detail="5 or more distinct native species" effect={-1.0} checked={highSpecies} onChange={e => { setHighSpecies(e.target.checked); if (e.target.checked) setLowSpecies(false); }} />
                     </div>
                   </div>
 
                   {/* Fire */}
                   <div>
-                    <div className="flex items-center gap-1.5 mb-3">
+                    <div className="flex items-center gap-1.5 mb-1">
                       <Icon d={ICONS.flame} size={12} stroke="#a8a29e" />
                       <span className="text-[12px] font-semibold text-stone-400 uppercase tracking-widest">Wildfire</span>
-                      <span className="ml-auto font-mono text-[12px] text-stone-400">base 1.0%</span>
+                      <span className="ml-auto font-mono text-[12px] text-stone-400">base 1.0 pts</span>
                     </div>
+                    <p className="text-[11px] text-stone-400 mb-3 leading-snug">Risk of fire starting or spreading through vegetation.</p>
                     <div className="space-y-2">
-                      <CheckOption label="Contiguous Fuel Load" detail="Borders unmanaged heath" effect={2.0} checked={heathBorder} onChange={e => setHeathBorder(e.target.checked)} />
-                      <CheckOption label="Active Fire Management" detail="Integrated firebreaks present" effect={-0.5} checked={fireBreaks} onChange={e => setFireBreaks(e.target.checked)} />
+                      <CheckOption label="Continuous vegetation that could carry fire" detail="Borders unmanaged heathland" effect={2.0} checked={heathBorder} onChange={e => setHeathBorder(e.target.checked)} />
+                      <CheckOption label="Firebreaks in place and maintained" detail="Breaks in vegetation can help slow fire spread" effect={-0.5} checked={fireBreaks} onChange={e => setFireBreaks(e.target.checked)} />
                     </div>
                   </div>
                 </div>
@@ -277,22 +312,22 @@ function App() {
               <div className="rounded-xl p-6" style={{ background: S.surface, border: `1px solid ${S.border}` }}>
                 <SectionHeader
                   icon={ICONS.brief}
-                  title="Part 2 — Internal Project Risks"
-                  subtitle="Select the category that best describes the project's financial, management, and tenure profile."
+                  title="Part 2 — Project-specific risks"
+                  subtitle="Provisional project-risk points. Choose the option supported by records, legal documents and management evidence."
                 />
                 <div className="space-y-4">
                   {[
-                    { label: "2.1 — Financial Failure Risk", val: financial, set: setFinancial, opts: [
+                    { label: "2.1 — Funding Risk", val: financial, set: setFinancial, opts: [
                       [0,   "Fully Funded", "Grants, equity, or escrow secured"],
                       [2.0, "Spot Market Reliant", "Relies on carbon sales for OPEX"],
                       [5.0, "Debt Funded", "Relies on carbon to service loans"],
                     ]},
-                    { label: "2.2 — Management & Technical Risk", val: management, set: setManagement, opts: [
+                    { label: "2.2 — Management and specialist support", val: management, set: setManagement, opts: [
                       [0,   "Professional Practitioner", "Certified forester"],
                       [2.0, "Assisted Landowner", "Retained consultant for ≥ 5 years"],
                       [4.0, "Unassisted Landowner", "No formal expertise or oversight"],
                     ]},
-                    { label: "2.3 — Land Tenure & Reversal Risk", val: tenure, set: setTenure, opts: [
+                    { label: "2.3 — Land protection and risk of reversal", val: tenure, set: setTenure, opts: [
                       [0,   "Deed Restriction", "Legally binding conservation easement"],
                       [2.0, "Crown / Government Land", "e.g. DEFA estate"],
                       [5.0, "Weak Tenure", "No restriction, or terminable lease"],
@@ -302,12 +337,12 @@ function App() {
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="text-[12px] font-semibold text-stone-500 uppercase tracking-wide">{label}</label>
                         <Badge variant={val > 0 ? "active" : "neutral"}>
-                          {val > 0 ? `+${val.toFixed(1)}%` : "0.0%"}
+                          {val > 0 ? `+${val.toFixed(1)} pts` : "0.0 pts"}
                         </Badge>
                       </div>
                       <select value={val} onChange={e => set(Number(e.target.value))} className={selectCls} style={{ color: S.text, borderColor: S.borderStrong }}>
                         {opts.map(([v, title, desc]) => (
-                          <option key={v} value={v}>{v.toFixed(1)}% — {title} · {desc}</option>
+                          <option key={v} value={v}>{v.toFixed(1)} pts — {title} · {desc}</option>
                         ))}
                       </select>
                     </div>
@@ -324,62 +359,64 @@ function App() {
                 <div className="rounded-xl overflow-hidden transition-all duration-500" style={{ border: `1px solid ${isElevated ? "rgba(201,124,20,0.4)" : S.border}` }}>
                   <div className="px-5 py-3.5 border-b flex items-center justify-between transition-colors duration-500"
                     style={{
-                      background: isElevated ? S.amberDim : S.surfaceAlt,
-                      borderColor: isElevated ? "rgba(201,124,20,0.25)" : S.border,
+                      background: ineligible ? S.redDim : isElevated ? S.amberDim : S.surfaceAlt,
+                      borderColor: ineligible ? "rgba(180,69,60,0.25)" : isElevated ? "rgba(201,124,20,0.25)" : S.border,
                     }}>
                     <div className="flex items-center gap-2">
-                      <Icon d={ICONS.file} size={14} stroke={isElevated ? "#b45309" : "#78716c"} />
-                      <span className={`text-xs font-semibold tracking-wide uppercase ${isElevated ? "text-amber-700" : "text-stone-500"}`}>Risk Scorecard</span>
+                      <Icon d={ICONS.file} size={14} stroke={ineligible ? S.red : isElevated ? "#b45309" : "#78716c"} />
+                      <span className={`text-xs font-semibold tracking-wide uppercase ${ineligible ? "text-red-600" : isElevated ? "text-amber-700" : "text-stone-500"}`}>Risk Scorecard</span>
                     </div>
                     <div className="text-[12px] font-mono px-2 py-0.5 rounded-full border"
-                      style={isElevated
-                        ? { background: S.amberDim, borderColor: "rgba(140,109,83,0.35)", color: S.amber }
-                        : { background: S.surfaceAlt, borderColor: S.borderStrong, color: S.textDim }}>
-                      {isElevated ? "ELEVATED PROFILE" : "STANDARD PROFILE"}
+                      style={ineligible
+                        ? { background: S.redDim, borderColor: "rgba(180,69,60,0.35)", color: S.red }
+                        : isElevated
+                          ? { background: S.amberDim, borderColor: "rgba(140,109,83,0.35)", color: S.amber }
+                          : { background: S.surfaceAlt, borderColor: S.borderStrong, color: S.textDim }}>
+                      {ineligible ? "REVIEW REQUIRED" : isElevated ? "HIGHER RISK" : "Standard risk"}
                     </div>
                   </div>
 
-                  <div className="p-5 space-y-5 scorecard-enter" key={scores.final} style={{ background: S.surface }}>
+                  <div className="p-5 space-y-5 scorecard-enter" key={`${scores.total}-${bufferContribution}-${reductionApproved}`} style={{ background: S.surface }}>
 
                     {/* P1 rows */}
                     <div>
-                      <div className="text-[12px] font-mono font-semibold text-stone-400 uppercase tracking-widest mb-1">Part 1 · Jurisdictional Climate</div>
-                      <RiskRow label="Windthrow + modifiers" value={scores.breakdown.windthrow} base={4.0} />
-                      <RiskRow label="Drought + modifiers"   value={scores.breakdown.drought}   base={2.0} />
-                      <RiskRow label="Pests + modifiers"     value={scores.breakdown.pests}     base={3.0} />
-                      <RiskRow label="Wildfire + modifiers"  value={scores.breakdown.fire}      base={1.0} />
+                      <div className="text-[12px] font-mono font-semibold text-stone-400 uppercase tracking-widest mb-1">Part 1 · Natural disturbance screening points</div>
+                      <RiskRow label="Wind damage + site adjustments" value={scores.breakdown.windDamage} base={3.5} />
+                      <RiskRow label="Drought + site adjustments"   value={scores.breakdown.drought}   base={2.5} />
+                      <RiskRow label="Pests and diseases + site adjustments"     value={scores.breakdown.pests}     base={3.0} />
+                      <RiskRow label="Wildfire + site adjustments"  value={scores.breakdown.fire}      base={1.0} />
                       <div className="flex justify-between pt-2 mt-1">
                         <span className="text-[12px] font-semibold text-stone-600">Subtotal</span>
-                        <span className="font-mono text-sm font-semibold text-stone-700 tabular-nums">{scores.part1.toFixed(1)}%</span>
+                        <span className="font-mono text-sm font-semibold text-stone-700 tabular-nums">{scores.part1.toFixed(1)} pts</span>
                       </div>
                     </div>
 
                     {/* P2 rows */}
                     <div style={{ borderTop: `1px solid ${S.border}` }} className="pt-5">
-                      <div className="text-[12px] font-mono font-semibold text-stone-400 uppercase tracking-widest mb-1">Part 2 · Internal Project</div>
+                      <div className="text-[12px] font-mono font-semibold text-stone-400 uppercase tracking-widest mb-1">Part 2 · Project-specific screening points</div>
                       <RiskRow label="Financial failure risk" value={financial}   base={0} />
                       <RiskRow label="Management risk"        value={management}  base={0} />
                       <RiskRow label="Tenure risk"            value={tenure}      base={0} />
                       <div className="flex justify-between pt-2 mt-1">
                         <span className="text-[12px] font-semibold text-stone-600">Subtotal</span>
-                        <span className="font-mono text-sm font-semibold text-stone-700 tabular-nums">{scores.part2.toFixed(1)}%</span>
+                        <span className="font-mono text-sm font-semibold text-stone-700 tabular-nums">{scores.part2.toFixed(1)} pts</span>
                       </div>
                     </div>
 
                     {/* Meter */}
                     <div style={{ borderTop: `1px solid ${S.border}` }} className="pt-4">
                       <div className="flex justify-between text-[12px] text-stone-500 mb-1">
-                        <span>Calculated Total</span>
-                        <span className="font-mono font-medium text-stone-700 tabular-nums">{scores.total.toFixed(1)}%</span>
+                        <span>Total screening score</span>
+                        <span className="font-mono font-medium text-stone-700 tabular-nums">{scores.total.toFixed(1)} pts</span>
                       </div>
                       <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: S.surfaceAlt }}>
                         <div
-                          className={`h-full rounded-full meter-fill ${scores.total >= 20 ? "bg-amber-400" : "bg-stone-400"}`}
+                          className={`h-full rounded-full meter-fill ${scores.total >= 16 ? "bg-amber-400" : "bg-stone-400"}`}
                           style={{ width: `${Math.min(100, (scores.total / 25) * 100)}%` }}
                         />
                       </div>
                       <div className="flex justify-between text-[12px] text-stone-300 mt-0.5 font-mono">
-                        <span>0%</span><span>25%</span>
+                        <span>0 pts</span><span>25 pts</span>
                       </div>
                     </div>
 
@@ -388,16 +425,18 @@ function App() {
                       style={{ background: ineligible ? S.redDim : isElevated ? S.amberDim : 'color-mix(in srgb, #7E4E8A 6%, white)', borderColor: ineligible ? 'rgba(180,69,60,0.35)' : isElevated ? 'rgba(140,109,83,0.35)' : 'rgba(126,78,138,0.25)' }}>
                       <div className="text-[12px] uppercase tracking-widest mb-2"
                         style={{ color: ineligible ? S.red : isElevated ? S.amber : '#7E4E8A' }}>
-                        {ineligible ? "Project Ineligible" : "Final Buffer Network Rate"}
+                        {ineligible ? "Eligibility review required" : "Buffer contribution required"}
                       </div>
                       <div className="text-5xl font-semibold tabular-nums leading-none"
                         style={{ color: ineligible ? S.red : isElevated ? S.amber : '#6F4279' }}>
-                        {scores.final.toFixed(1)}<span className="text-2xl font-normal">%</span>
+                        {ineligible ? "—" : bufferContribution.toFixed(1)}{!ineligible && <span className="text-2xl font-normal">%</span>}
                       </div>
                       <div className="text-[12px] mt-2" style={{ color: ineligible ? S.red : S.textMuted }}>
                         {ineligible
-                          ? "Risk exceeds the 25% maximum (Core §6.2.3) — mitigation required before validation"
-                          : isElevated ? "Elevated risk profile" : "Standard risk profile"}
+                          ? "Screening score exceeds the provisional 25-point limit. Mitigation and reassessment are required; a larger buffer cannot replace eligibility requirements."
+                          : reductionApproved
+                            ? `Provisional risk-adjusted rate: ${assessedRate}%. The lower rate is enabled because both approval gates are marked complete; evidence and approvals must be recorded outside this calculator.`
+                            : "20% default applies. A reduction to 12–18% remains unavailable until both independent assessment and pooled-buffer stress-test approval are formally recorded."}
                       </div>
                     </div>
 
@@ -414,10 +453,42 @@ function App() {
                 {/* VVB footnote */}
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: S.surfaceAlt, border: `1px solid ${S.border}` }}>
                   <Icon d={ICONS.check} size={13} stroke="#16a34a" />
-                  <span className="text-[12px] text-stone-400">Output formatted for VVB audit · MNS-RM01</span>
+                  <span className="text-[12px] text-stone-400">Provisional screening output · MNS-RM01</span>
                 </div>
 
               </div>
+            </div>
+          </div>
+
+          {/* ── Methodology and transparency notes ── */}
+          <div className="mt-8 rounded-xl p-6" style={{ background: S.surface, border: `1px solid ${S.border}` }}>
+            <SectionHeader
+              icon={ICONS.file}
+              title="Methodology, evidence and limitations"
+              subtitle="The calculator is a provisional screening tool. It does not estimate an actuarially precise probability of carbon reversal."
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-[13px] leading-relaxed" style={{ color: S.textMuted }}>
+              <div>
+                <h3 className="font-semibold mb-1" style={{ color: S.text }}>Default and potential reductions</h3>
+                <p>The standard default is a 20% buffer contribution. An independently verified risk assessment may produce a provisional rate of 12%, 14%, 16%, 18% or 20%, according to the screening bands displayed by the calculator. A reduction below 20% remains disabled unless the independent assessment and formal pooled-buffer stress-test gates are both approved.</p>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-1" style={{ color: S.text }}>What the scores mean</h3>
+                <p>The displayed points are provisional policy weights adapted from the earlier MNS matrix. They are not percentages of annual loss, lifetime reversal probabilities, or empirically calibrated Isle of Man carbon-loss rates. The provisional conversion bands are: 9 points or fewer = 12%; above 9 to 12 = 14%; above 12 to 16 = 16%; above 16 to 20 = 18%; above 20 to 25 = 20%; above 25 = eligibility review. These bands are proposed MNS policy settings, not scientific reversal probabilities, and require validation before formal adoption. The 12% floor is informed by external carbon-crediting precedent, not established by Isle of Man data.</p>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-1" style={{ color: S.text }}>Local evidence</h3>
+                <p>Published DEFA records document extensive historic plantation windblow and severe larch losses associated with <em>Phytophthora ramorum</em>. The Government's 2025 climate-risk assessment identifies material risks from drought, wildfire and forestry pests, and risks to natural carbon stores. These sources establish relevant hazards, but do not quantify site-specific reversal probabilities.</p>
+                <p className="mt-2"><a className="underline" href="https://consult.gov.im/environment-food-and-agriculture/isle-of-man-plantation-management-plans-2025-2045/supporting_documents/national-plantation-management-plan-2025-chpdf" target="_blank" rel="noreferrer">DEFA National Plantation Management Plan 2025–2045</a></p>
+                <p><a className="underline" href="https://www.researchgate.net/publication/401437402_Climate_Change_Risk_and_Opportunities_Assessment_to_inform_Adaptation_Planning_for_the_Isle_of_Man" target="_blank" rel="noreferrer">Isle of Man Climate Change Risk and Opportunities Assessment (2025)</a></p>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-1" style={{ color: S.text }}>Pooled-buffer stress test</h3>
+                <p>In an illustrative scenario, 25% of the portfolio experiencing a 50% carbon loss produces a 12.5% portfolio-wide reversal. A 12% reserve would be short by 0.5 percentage points; a 20% reserve would have 7.5 points remaining before replenishment. These are scenario assumptions, not predicted event probabilities. The live MNS portfolio, reserve balance, habitat concentration and replenishment arrangements must be assessed before reductions to 12% are enabled.</p>
+              </div>
+            </div>
+            <div className="mt-5 pt-4 border-t text-[12px] leading-relaxed" style={{ borderColor: S.border, color: S.textDim }}>
+              <strong style={{ color: S.text }}>Governance note:</strong> a high buffer contribution does not substitute for mitigation, legal permanence, monitoring or eligibility. Projects that exceed the provisional screening threshold must be mitigated and reassessed. The 25-point threshold and the 12% floor are proposed MNS policy settings, not rules prescribed by ICVCM. The current hazard controls are woodland-oriented; habitat-specific scoring is required before this matrix is used to authorise reduced contributions for peatland, wetland or blue-carbon projects.
             </div>
           </div>
         </div>
