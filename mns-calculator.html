@@ -5,11 +5,12 @@
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
-<style>html,body{margin:0;padding:0;background:#F8F9F7;color:#1A1A1A;font-family:"Carlito","Calibri",Arial,sans-serif;}#mns-backbar{display:flex;align-items:center;gap:12px;padding:10px 20px;background:#F1F5F3;border-bottom:1px solid #E5E7EB;position:sticky;top:0;z-index:99999;font-family:"Carlito",Arial,sans-serif;}#mns-backbar .chev{color:#64748B;text-decoration:none;font-size:22px;line-height:1;padding:0 2px;}#mns-backbar .chev:hover{color:#1A1A1A;}#mns-backbar .ficon{color:#237370;flex-shrink:0;display:block;}#mns-backbar .ttl{font-weight:700;font-size:14px;color:#1A1A1A;line-height:1.15;}#mns-backbar .sub{font-size:12px;color:#64748B;line-height:1.2;}#root{max-width:1120px;margin:0 auto;}.mns-loading{padding:52px 16px;text-align:center;color:#64748B;font-size:14px;font-family:"Carlito",Arial,sans-serif;}</style></head>
+<style>html,body{margin:0;padding:0;background:#F8F9F7;color:#1A1A1A;font-family:"Carlito","Calibri",Arial,sans-serif;}#mns-backbar{display:flex;align-items:center;gap:12px;padding:10px 20px;background:#F1F5F3;border-bottom:1px solid #E5E7EB;position:sticky;top:0;z-index:99999;font-family:"Carlito",Arial,sans-serif;}#mns-backbar .chev{color:#64748B;text-decoration:none;font-size:22px;line-height:1;padding:0 2px;}#mns-backbar .chev:hover{color:#1A1A1A;}#mns-backbar .ficon{color:#237370;flex-shrink:0;display:block;}#mns-backbar .ttl{font-weight:700;font-size:14px;color:#1A1A1A;line-height:1.15;}#mns-backbar .sub{font-size:12px;color:#64748B;line-height:1.2;}#root{max-width:1120px;margin:0 auto;}.mns-loading{padding:52px 16px;text-align:center;color:#64748B;font-size:14px;font-family:"Carlito",Arial,sans-serif;}@media(max-width:900px){#calc-layout{grid-template-columns:1fr!important}#calc-ledger{position:relative!important;top:auto!important;height:auto!important;border-left:0!important;border-top:1px solid #E5E7EB}}@media(max-width:600px){#mns-backbar{padding:10px 12px}#calc-layout>div{padding:18px 14px!important}#calc-layout [style*="grid-template-columns:1fr 420px"]{grid-template-columns:1fr!important}}
+</style></head>
 <body>
 <div id="mns-backbar"><a id="mns-back" class="chev" href="#" aria-label="Back to docs">‹</a><svg class="ficon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><div><div class="ttl">MNS Calculator</div><div class="sub">Manx Nature Registry</div></div></div>
 <div id="root"><div class="mns-loading">Loading MNS Calculator…</div></div>
-<script>var MNS_DOCS_URL="https://app.gitbook.com/o/eeK69mJA0sfxUE4QHcdO/sites/site_5uLWn/s/D4dByPvIASslQjAYuo5V/tools/mns-calculator";document.getElementById('mns-back').setAttribute('href',MNS_DOCS_URL);</script>
+<script>var MNS_DOCS_URL="";document.getElementById('mns-back').setAttribute('href',MNS_DOCS_URL || 'javascript:history.back()');</script>
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useMemo } = React;
 
@@ -422,7 +423,7 @@ function SpeciesMixMatrix({ rows, onChange, area, coniferPct }) {
           </span>}
           {valid && !coniferOver && <Pill>balanced</Pill>}
           {valid && coniferOver && (
-            <Pill color={S.red} bg={S.redDim}>§10.1 cap exceeded</Pill>
+            <Pill color={S.red} bg={S.redDim}>§11.1 cap exceeded</Pill>
           )}
         </div>
       </div>
@@ -437,10 +438,10 @@ function SpeciesMixMatrix({ rows, onChange, area, coniferPct }) {
         <div style={{ marginTop:10, padding:'10px 14px', background:S.redDim, border:`1px solid ${S.red}25`, borderRadius:6, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div>
             <div style={{ fontFamily:S.fontSans, fontSize:11, fontWeight:600, color:S.red, marginBottom:3 }}>
-              Protocol Violation — MNS-M01 §10.1
+              Protocol Violation — MNS-M01 §11.1
             </div>
             <div style={{ fontFamily:S.fontSans, fontSize:10, color:S.red, opacity:0.8 }}>
-              Scots Pine + Yew combined must not exceed 20% of the species mix. Reduce by {(coniferPct - 20).toFixed(1)}%.
+              Scots Pine and Yew combined must not exceed 20% of planted stems. Reduce by {(coniferPct - 20).toFixed(1)}%.
             </div>
           </div>
           <div style={{ fontFamily:S.font, fontSize:18, fontWeight:500, color:S.red, marginLeft:16, whiteSpace:'nowrap' }}>
@@ -461,515 +462,550 @@ function SpeciesMixMatrix({ rows, onChange, area, coniferPct }) {
 
 // ── Main App ───────────────────────────────────────────────────────────────
 function App() {
-  const [area,          setArea]          = useState(8);
-  const [soilType,      setSoilType]      = useState('mineral');
-  const [vintageYear,   setVintageYear]   = useState(5);
-  const [speciesMix,    setSpeciesMix]    = useState([
-    { species:'oak',   pct:60, yc:4 },
+  const [area, setArea] = useState(8);
+  const [vintageYear, setVintageYear] = useState(5);
+  const [speciesMix, setSpeciesMix] = useState([
+    { species:'oak', pct:60, yc:4 },
     { species:'birch', pct:25, yc:6 },
     { species:'hazel', pct:15, yc:4 },
   ]);
-  const [targetStems,    setTargetStems]    = useState(2500);
-  const [actualStems,    setActualStems]    = useState(2100);
-  const [fuelLiters,     setFuelLiters]     = useState(200);
-  const [clearedVol,     setClearedVol]     = useState(0);
-  const [burned,         setBurned]         = useState(false);
-  const [displacedSheep, setDisplacedSheep] = useState(0);
-  const [safeHarbor,     setSafeHarbor]     = useState(true);
-  const [browsedScrub,   setBrowsedScrub]   = useState(false);
-  const [rmseInput,      setRmseInput]      = useState(0.0);
-  const [rm01Score,      setRm01Score]      = useState(15.0);
-  const [prevDeficit,    setPrevDeficit]    = useState(0);
-  const [prevIssued,     setPrevIssued]     = useState(0);
-  const [results,        setResults]        = useState({});
+  const [targetStems, setTargetStems] = useState(2500);
+  const [actualStems, setActualStems] = useState(2100);
+  const [uncertaintyRates, setUncertaintyRates] = useState({});
+  const [uncertaintyScheduleRef, setUncertaintyScheduleRef] = useState('');
+  const [bufferRate, setBufferRate] = useState(20);
+  const [bufferApprovalRef, setBufferApprovalRef] = useState('');
+  const [baselineChange, setBaselineChange] = useState(0);
+  const [fuelLiters, setFuelLiters] = useState(0);
+  const [fuelType, setFuelType] = useState('gas_oil');
+  const [customFuelFactor, setCustomFuelFactor] = useState('');
+  const [customFuelFactorRef, setCustomFuelFactorRef] = useState('');
+  const [soilType, setSoilType] = useState('none');
+  const [disturbedArea, setDisturbedArea] = useState(0);
+  const [clearedAGB, setClearedAGB] = useState(0);
+  const [clearedBGB, setClearedBGB] = useState(0);
+  const [burned, setBurned] = useState(false);
+  const [burnFactor, setBurnFactor] = useState('');
+  const [burnFactorRef, setBurnFactorRef] = useState('');
+  const [displacedLivestock, setDisplacedLivestock] = useState(0);
+  const [cropProductionDisplaced, setCropProductionDisplaced] = useState(false);
+  const [livestockLabel, setLivestockLabel] = useState('upland_sheep');
+  const [livestockEF, setLivestockEF] = useState('');
+  const [livestockEFRef, setLivestockEFRef] = useState('');
+  const [safeHarbor, setSafeHarbor] = useState('none');
+  const [safeHarborEvidence, setSafeHarborEvidence] = useState('');
+  const [receivingDensityIncrease, setReceivingDensityIncrease] = useState(0);
+  const [marketLFSource, setMarketLFSource] = useState('default');
+  const [marketLFPercent, setMarketLFPercent] = useState('');
+  const [marketLFRef, setMarketLFRef] = useState('');
+  const [browsedScrub, setBrowsedScrub] = useState(false);
+  const [browsingEvidence, setBrowsingEvidence] = useState('');
+  const [prevDeficit, setPrevDeficit] = useState(0);
+  const [reversalDetected, setReversalDetected] = useState(false);
 
-  const totalPct       = speciesMix.reduce((s,r)=>s+r.pct, 0);
-  const mixValid       = Math.abs(totalPct-100) < 0.1;
-  // Conifer cap: Scots Pine + Yew combined must not exceed 20% (MNS-M01 §10.1)
-  const coniferPct     = speciesMix.filter(r => r.species === 'scots_pine' || r.species === 'yew').reduce((s,r) => s+r.pct, 0);
-  const coniferValid   = coniferPct <= 20;
-  const enforcedBuffer = rm01Score;
-  const bufferLifted   = rm01Score >= 20;
+  const totalPct = speciesMix.reduce((s, r) => s + Number(r.pct || 0), 0);
+  const mixValid = Math.abs(totalPct - 100) < 0.1;
+  const coniferPct = speciesMix.filter(r => r.species === 'scots_pine' || r.species === 'yew').reduce((s, r) => s + Number(r.pct || 0), 0);
+  const ashPct = speciesMix.filter(r => r.species === 'ash').reduce((s, r) => s + Number(r.pct || 0), 0);
+  const understoryKeys = new Set(['hazel','hawthorn','holly','bird_cherry','blackthorn','crab_apple','elder','guelder','goat_willow','rowan']);
+  const understoryPct = speciesMix.filter(r => understoryKeys.has(r.species)).reduce((s, r) => s + Number(r.pct || 0), 0);
+  const survivalRatio = targetStems > 0 ? actualStems / targetStems : 0;
+  const spf = survivalRatio >= 0.8 ? 1 : survivalRatio < 0.5 ? 0 : survivalRatio;
+  const densityFactor = Math.min(1, Math.max(0, targetStems) / 2500);
+  const standardFuelFactors = { diesel: 0.0025835, gas_oil: 0.0027554 };
+  const fuelFactor = fuelType === 'custom'
+    ? (customFuelFactor !== '' && Number.isFinite(Number(customFuelFactor)) && Number(customFuelFactor) > 0 ? Number(customFuelFactor) : null)
+    : standardFuelFactors[fuelType];
+  const fuelFactorLabel = fuelType === 'gas_oil' ? 'Gas oil / red diesel, 2026' : fuelType === 'diesel' ? 'Diesel (forecourt), 2026' : 'Custom factor';
+  const clearedDryTonnes = Math.max(0, Number(clearedAGB || 0)) + Math.max(0, Number(clearedBGB || 0));
+  const livestockEFNum = livestockEF !== '' && Number.isFinite(Number(livestockEF)) && Number(livestockEF) > 0 ? Number(livestockEF) : null;
+  const burnFactorNum = burnFactor !== '' && Number.isFinite(Number(burnFactor)) && Number(burnFactor) >= 0 ? Number(burnFactor) : null;
+  const marketLFNum = marketLFSource === 'default'
+    ? 0.40
+    : (marketLFPercent !== '' && Number.isFinite(Number(marketLFPercent)) && Number(marketLFPercent) >= 0 && Number(marketLFPercent) <= 100 ? Number(marketLFPercent) / 100 : null);
+  const safeHarborEvidencePresent = safeHarborEvidence.trim().length > 0;
+  const safeHarborValid = safeHarbor === 'historical_absence'
+    ? (displacedLivestock === 0 && safeHarborEvidencePresent)
+    : safeHarbor === 'permanent_reduction'
+      ? (displacedLivestock > 0 && safeHarborEvidencePresent)
+      : safeHarbor === 'relocation'
+        ? (displacedLivestock > 0 && safeHarborEvidencePresent && receivingDensityIncrease <= 10)
+        : false;
+  const marketLeakageApplies = safeHarbor === 'permanent_reduction' && safeHarborValid && displacedLivestock > 0;
 
-  useEffect(() => {
-    if (!mixValid)     { setResults({ invalid: 'mix' });     return; }
-    if (!coniferValid) { setResults({ invalid: 'conifer' }); return; }
-
-    // SPF: survival ratio only — §4.2 (absolute stem floor removed)
-    // High-biodiversity low-density planting (e.g. 1,000 stems/ha) is valid;
-    // phantom canopy is controlled separately by densityFactor below.
-    let spf = actualStems / targetStems;
-    if (spf >= 0.8) spf = 1.0;
-    else if (spf < 0.5) spf = 0.0;
-    // else proportional between 0.5–0.8
-
-    // densityFactor: scales UKFC base volume if target density < 2,500 stems/ha standard.
-    // Prevents over-crediting at low planting densities without penalising SPF.
-    // Capped at 1.0 — density above 2,500 stems/ha gives no volume bonus.
-    const STANDARD_STEMS = 2500;
-    const densityFactor = Math.min(1.0, targetStems / STANDARD_STEMS);
-
-    // 1. Freeze lifetime upfront emissions at Yr 5 baseline C_project
-    let cProject_Yr5 = 0;
-    speciesMix.forEach(row => {
-      const vol5 = (UKFC[row.species]?.[row.yc]?.[5] ?? 0) * densityFactor * spf * ((row.pct/100)*area);
-      const agb5 = vol5 * SPECIES_DATA[row.species].sg * BEF;
-      const rs5 = (browsedScrub && BURRELL_RS_SPECIES.has(row.species)) ? BURRELL_RS : R2S;
-      cProject_Yr5 += (agb5 + agb5*rs5) * CF * STOICH;
+  const projectStockAt = (year) => {
+    if (year <= 0 || spf === 0 || targetStems <= 0) return { total: 0, volume: 0, species: [] };
+    let total = 0;
+    let totalVolume = 0;
+    const species = speciesMix.map(row => {
+      const ha = (Number(row.pct) / 100) * area;
+      const volumePerHa = UKFC[row.species]?.[row.yc]?.[year] ?? 0;
+      const volume = volumePerHa * densityFactor * spf * ha;
+      const agb = volume * SPECIES_DATA[row.species].sg * BEF;
+      const useBurrell = browsedScrub && browsingEvidence.trim() && BURRELL_RS_SPECIES.has(row.species);
+      const rs = useBurrell ? BURRELL_RS : R2S;
+      const stock = (agb + agb * rs) * CF * STOICH;
+      total += stock;
+      totalVolume += volume;
+      return { ...row, ha, volumePerHa, volume, agb, rs, stock };
     });
-    const soilFactor  = soilType==='mineral' ? 0.05 : 0.15;
-    const peSoil      = cProject_Yr5 * soilFactor;
-    const peFf        = fuelLiters * 0.0026;
-    let   lClearance  = 0;
-    if (clearedVol > 0) { lClearance = clearedVol*CF*STOICH; if (burned) lClearance *= 1.15; }
-    let leActivity=0, leMarket=0;
-    if (!safeHarbor && displacedSheep>0) leActivity = displacedSheep*0.08*10;
-    else if (safeHarbor && displacedSheep>0) leMarket = displacedSheep*0.08*10*0.40;
-    const lifetimeEmissions = peSoil+peFf+lClearance+leActivity+leMarket;
+    return { total, volume: totalVolume, species };
+  };
 
-    // 2. Cumulative C_project at selected vintage (each species uses its own YC + densityFactor)
-    let cProject=0, totalVolume=0;
-    const speciesBreakdown = speciesMix.map(row => {
-      const ha         = (row.pct/100)*area;
-      const vBasePerHa = UKFC[row.species]?.[row.yc]?.[vintageYear] ?? 0;
-      const vol        = vBasePerHa * densityFactor * spf * ha;
-      const agb        = vol * SPECIES_DATA[row.species].sg * BEF;
-      const rs         = (browsedScrub && BURRELL_RS_SPECIES.has(row.species)) ? BURRELL_RS : R2S;
-      const c          = (agb + agb*rs) * CF * STOICH;
-      cProject    += c;
-      totalVolume += vol;
-      return { ...row, ha, vol, c, vBasePerHa };
-    });
+  const currentStock = projectStockAt(vintageYear);
+  const previousStock = vintageYear === 5 ? { total: 0, volume: 0, species: speciesMix.map(r => ({ ...r, stock: 0, volume: 0, volumePerHa: 0, ha: area * Number(r.pct) / 100 })) } : projectStockAt(vintageYear - 5);
+  const speciesBreakdown = currentStock.species.map((row, i) => {
+    const previous = previousStock.species[i];
+    return {
+      ...row,
+      previousStock: previous ? previous.stock : 0,
+      deltaStock: row.stock - (previous ? previous.stock : 0),
+      uncertaintyPct: uncertaintyRates[`${row.species}:${row.yc}`] === undefined ? '' : uncertaintyRates[`${row.species}:${row.yc}`],
+    };
+  });
+  const projectStockChange = speciesBreakdown.reduce((s, r) => s + r.deltaStock, 0);
+  const uncertaintyRatesComplete = speciesMix.every(row => {
+    const rate = uncertaintyRates[`${row.species}:${row.yc}`];
+    return rate !== undefined && rate !== '' && Number.isFinite(Number(rate)) && Number(rate) >= 0 && Number(rate) <= 100;
+  }) && uncertaintyScheduleRef.trim().length > 0;
+  const uncertaintyDeduction = uncertaintyRatesComplete
+    ? speciesBreakdown.reduce((s, r) => s + Math.max(0, r.deltaStock) * (Number(r.uncertaintyPct) / 100), 0)
+    : null;
 
-    // 3. Gross removals & integrity deductions
-    const grossEr    = cProject - lifetimeEmissions;
-    const uDeduction = cProject * (Math.max(0, rmseInput)/100);
-    const bDeduction = grossEr>0 ? grossEr*(enforcedBuffer/100) : 0;
-    const hwm        = Math.max(0, prevDeficit);
+  const baselineDeduction = Math.max(0, Number(baselineChange || 0));
+  const projectFuelEmissions = fuelFactor === null ? null : Math.max(0, fuelLiters) * fuelFactor;
+  const soilFactor = soilType === 'mineral' ? 0.05 : soilType === 'organo' ? 0.15 : 0;
+  const soilDeduction = vintageYear === 5 && soilType !== 'none' && area > 0 && disturbedArea >= 0 && disturbedArea <= area
+    ? Math.max(0, projectStockChange) * soilFactor * (disturbedArea / area)
+    : 0;
+  const clearanceEmission = vintageYear === 5 ? clearedDryTonnes * CF * STOICH : 0;
+  const burningExtraEmissions = vintageYear === 5 && burned && clearedDryTonnes > 0 && burnFactorNum !== null
+    ? clearedDryTonnes * burnFactorNum
+    : (vintageYear === 5 && burned && clearedDryTonnes > 0 ? null : 0);
+  const livestockBaseEmissions = livestockEFNum === null ? null : Math.max(0, displacedLivestock) * livestockEFNum * 10;
+  const activityLeakage = displacedLivestock <= 0 ? 0 : (livestockBaseEmissions === null ? null : (safeHarborValid ? 0 : livestockBaseEmissions));
+  const marketLeakage = !marketLeakageApplies ? 0 : (livestockBaseEmissions === null || marketLFNum === null ? null : livestockBaseEmissions * marketLFNum);
 
-    // 4. Cumulative net
-    let cumulativeNetEr = grossEr - uDeduction - bDeduction - hwm;
-    let deficit=0;
-    if (cumulativeNetEr<=0) { deficit=Math.abs(cumulativeNetEr); cumulativeNetEr=0; }
+  const emissionsComplete =
+    (fuelLiters <= 0 || projectFuelEmissions !== null) &&
+    !(vintageYear === 5 && burned && clearedDryTonnes > 0 && (burnFactorNum === null || !burnFactorRef.trim())) &&
+    (displacedLivestock <= 0 || (livestockEFNum !== null && livestockEFRef.trim().length > 0)) &&
+    !(marketLeakageApplies && marketLFSource !== 'default' && (marketLFNum === null || !marketLFRef.trim())) &&
+    !(fuelType === 'custom' && fuelLiters > 0 && (!customFuelFactorRef.trim() || fuelFactor === null));
+  const soilInputValid = !(vintageYear === 5 && soilType !== 'none' && (disturbedArea <= 0 || disturbedArea > area));
+  const bufferRefValid = bufferRate >= 20 || bufferApprovalRef.trim().length > 0;
+  const browsingRefValid = !browsedScrub || browsingEvidence.trim().length > 0;
+  const netCalculationComplete = uncertaintyRatesComplete && emissionsComplete && soilInputValid && bufferRefValid && browsingRefValid && fuelLiters >= 0;
 
-    // 5. Vintage issuance = cumulative net − already issued
-    let vintageNetEr = cumulativeNetEr - Math.max(0, prevIssued);
-    if (vintageNetEr<0) vintageNetEr=0;
+  // MNS-M01 §10.1: rate base is calculated after baseline, project emissions,
+  // leakage and initial clearance deductions, but before the uncertainty deduction.
+  const preBufferBalance = emissionsComplete && soilInputValid
+    ? projectStockChange - baselineDeduction - (projectFuelEmissions || 0) - soilDeduction - clearanceEmission - (burningExtraEmissions || 0) - (activityLeakage || 0) - (marketLeakage || 0)
+    : null;
+  const bufferBase = preBufferBalance === null ? null : Math.max(0, preBufferBalance);
+  const bufferVolume = bufferBase === null ? null : bufferBase * (bufferRate / 100);
+  const netBeforeCarryover = netCalculationComplete && uncertaintyDeduction !== null && bufferVolume !== null
+    ? projectStockChange - baselineDeduction - (projectFuelEmissions || 0) - soilDeduction - clearanceEmission - (burningExtraEmissions || 0) - (activityLeakage || 0) - (marketLeakage || 0) - uncertaintyDeduction - bufferVolume
+    : null;
+  const balanceAfterDeficit = netBeforeCarryover === null ? null : netBeforeCarryover - Math.max(0, prevDeficit);
+  const newDeficit = balanceAfterDeficit === null ? null : (balanceAfterDeficit <= 0 ? Math.abs(balanceAfterDeficit) : 0);
+  const provisionalUnits = balanceAfterDeficit === null ? null : Math.max(0, balanceAfterDeficit);
 
-    setResults({ speciesBreakdown, totalVolume, cProject, spf, densityFactor, peSoil, peFf, lClearance, leActivity, leMarket, grossEr, uDeduction, bDeduction, hwm, cumulativeNetEr, vintageNetEr, deficit });
-  }, [area, soilType, clearedVol, burned, speciesMix, targetStems, actualStems, vintageYear, fuelLiters, displacedSheep, safeHarbor, browsedScrub, rmseInput, enforcedBuffer, prevDeficit, prevIssued, mixValid, coniferValid]);
+  const screenIssues = [];
+  if (!mixValid) screenIssues.push(`Species mix totals ${totalPct.toFixed(1)}%; it must total 100%.`);
+  if (area <= 0) screenIssues.push('Net planted area must be greater than zero.');
+  if (targetStems <= 0) screenIssues.push('Target planting density must be greater than zero.');
+  if (targetStems > 2500) screenIssues.push('Initial planting density exceeds the 2,500 stems/ha limit in MNS-M01 §11.3.');
+  if (coniferPct > 20) screenIssues.push('Scots Pine and Yew exceed the 20% cap in MNS-M01 §11.1.');
+  if (ashPct > 2) screenIssues.push('Ash exceeds the 2% cap in MNS-M01 §11.1.');
+  if (understoryPct < 15) screenIssues.push('The species mix contains less than 15% designated understory species. Verify the actual surviving stems at verification.');
+  if (spf === 0) screenIssues.push('Survival is below 50% of the target density. Module A issuance is blocked until replanting and a subsequent establishment audit.');
+  if (!soilInputValid) screenIssues.push('Enter a positive disturbed area no greater than the net planted area for Year 5 mechanical soil preparation.');
+  if (reversalDetected) screenIssues.push('A reversal or major disturbance was reported. Do not use Module A yield tables for the affected stratum; quantify remaining stocks under Module B.');
+  if (cropProductionDisplaced) screenIssues.push('This calculator models livestock leakage only. Crop-production displacement requires a separate approved leakage calculation.');
+  if (browsedScrub && !browsingEvidence.trim()) screenIssues.push('Add the evidence reference before applying the alternative root-to-shoot ratio.');
 
-  const fmt = (n, d=2) => (n!==undefined && !isNaN(n)) ? n.toFixed(d) : '—';
-  const spfStatus = results.spf===0 ? 'FAIL' : results.spf<1 ? `${(results.spf*100).toFixed(0)}%` : 'PASS';
-  const spfColor  = results.spf===0 ? S.red  : results.spf<1 ? S.amber : S.accent;
+  const missingInputs = [];
+  if (!uncertaintyScheduleRef.trim()) missingInputs.push('Registry-approved Module A uncertainty schedule reference');
+  speciesMix.forEach(row => {
+    const key = `${row.species}:${row.yc}`;
+    const value = uncertaintyRates[key];
+    if (value === undefined || value === '' || !Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > 100) {
+      missingInputs.push(`Approved uncertainty rate for ${SPECIES_DATA[row.species].label}, YC ${row.yc}`);
+    }
+  });
+  if (fuelLiters > 0 && fuelFactor === null) missingInputs.push('Valid fuel emission factor');
+  if (fuelLiters > 0 && fuelType === 'custom' && !customFuelFactorRef.trim()) missingInputs.push('Fuel factor source/version reference');
+  if (vintageYear === 5 && burned && clearedDryTonnes > 0 && burnFactorNum === null) missingInputs.push('Approved additional CH₄/N₂O combustion factor');
+  if (vintageYear === 5 && burned && clearedDryTonnes > 0 && !burnFactorRef.trim()) missingInputs.push('IPCC Tier 1 combustion factor source/version');
+  if (displacedLivestock > 0 && livestockEFNum === null) missingInputs.push('Species-specific livestock emission factor');
+  if (displacedLivestock > 0 && !livestockEFRef.trim()) missingInputs.push('Livestock emission factor source/version');
+  if (marketLeakageApplies && marketLFSource !== 'default' && marketLFNum === null) missingInputs.push('Empirically derived market leakage fraction');
+  if (marketLeakageApplies && marketLFSource !== 'default' && !marketLFRef.trim()) missingInputs.push('Market elasticity evidence/source reference');
+  if (bufferRate < 20 && !bufferApprovalRef.trim()) missingInputs.push('Approval reference for a buffer rate below 20%');
 
-  // Topbar button style
+  const fmt = (n, d = 2) => (n !== undefined && n !== null && Number.isFinite(Number(n))) ? Number(n).toFixed(d) : '—';
+  const spfStatus = spf === 0 ? 'FAIL' : spf < 1 ? `${(spf * 100).toFixed(0)}%` : 'PASS';
+  const spfColor = spf === 0 ? S.red : spf < 1 ? S.amber : S.accent;
+  const allRequiredInputsPresent = missingInputs.length === 0 && netCalculationComplete;
+  const resultScreenPasses = screenIssues.length === 0;
+
+  function exportResults() {
+    const payload = {
+      calculator: 'MNS Module A Calculator',
+      status: 'Preliminary estimate only. Not an issuance approval.',
+      exportedAt: new Date().toISOString(),
+      methodologyVersion: 'MNS-M01 v0.2.5 draft',
+      inputs: {
+        netPlantedAreaHa: area, vintageYear, speciesMix, targetStems, actualStems,
+        uncertaintyRates, uncertaintyScheduleRef, bufferRate, bufferApprovalRef,
+        baselineChangeTCO2e: baselineChange, fuelLiters, fuelType, fuelFactorTCO2ePerLitre: fuelFactor,
+        soilType, disturbedAreaHa: disturbedArea, clearedAGBDryTonnes: clearedAGB, clearedBGBDryTonnes: clearedBGB,
+        burned, burnFactorTCO2ePerDryTonne: burnFactor, burnFactorRef,
+        displacedLivestock, cropProductionDisplaced, livestockLabel, livestockEF, livestockEFRef, safeHarbor,
+        safeHarborEvidence, receivingDensityIncreasePct: receivingDensityIncrease,
+        marketLFSource, marketLFPercent, marketLFRef, browsedScrub, browsingEvidence,
+        previousDeficitTCO2e: prevDeficit, reversalDetected
+      },
+      results: {
+        currentProjectStockTCO2e: currentStock.total,
+        previousProjectStockTCO2e: previousStock.total,
+        projectStockChangeTCO2e: projectStockChange,
+        baselineDeductionTCO2e: baselineDeduction,
+        projectFuelEmissionsTCO2e: projectFuelEmissions,
+        soilDisturbanceDeductionTCO2e: soilDeduction,
+        preProjectClearanceEmissionsTCO2e: clearanceEmission,
+        additionalBurningEmissionsTCO2e: burningExtraEmissions,
+        activityShiftingLeakageTCO2e: activityLeakage,
+        marketLeakageTCO2e: marketLeakage,
+        uncertaintyDeductionTCO2e: uncertaintyDeduction,
+        bufferRatePct: bufferRate,
+        bufferVolumeTCO2e: bufferVolume,
+        netBeforeCarryoverTCO2e: netBeforeCarryover,
+        previousDeficitTCO2e: prevDeficit,
+        newDeficitTCO2e: newDeficit,
+        indicativeUnitsAfterDeficit: provisionalUnits
+      },
+      screeningIssues: screenIssues,
+      missingInputs
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mns-calculator-vintage-${vintageYear}-estimate.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   const tabBtn = {
     background: S.surface, border:`1px solid ${S.borderStrong}`, borderRadius:6,
     padding:'6px 14px', fontFamily:S.fontSans, fontSize:12, fontWeight:500,
     color:S.textMuted, cursor:'default', letterSpacing:'-0.01em',
   };
+  const inputStyle = { ...iBase };
+  const factorSourceUrl = 'https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2026';
 
   return (
     <div style={{ minHeight:'100vh', background:S.bg, fontFamily:S.fontSans, color:S.text }}>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" />
-
-      {/* ── Topbar — matches registry tab bar ── */}
-      <div style={{ background:S.surface, borderBottom:`1px solid ${S.border}`, padding:'0 32px', display:'flex', alignItems:'center', justifyContent:'space-between', height:56, position:'sticky', top:0, zIndex:20 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+      <div style={{ background:S.surface, borderBottom:`1px solid ${S.border}`, padding:'0 32px', display:'flex', alignItems:'center', justifyContent:'space-between', minHeight:56, position:'sticky', top:0, zIndex:20, gap:12, flexWrap:'wrap' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <div style={{ width:8, height:8, borderRadius:'50%', background:S.accent }} />
-            <span style={{ fontFamily:S.fontHead, fontSize:15, fontWeight:600, color:S.text, letterSpacing:'-0.01em' }}>MNS Standard</span>
+            <span style={{ fontFamily:S.fontHead, fontSize:15, fontWeight:600, color:S.text }}>MNS Standard</span>
           </div>
           <div style={{ width:1, height:20, background:S.border, margin:'0 4px' }} />
-          {/* Registry-style tab buttons */}
-          {['Module A — Woodland Creation', 'Module B — Peatland', 'Module C — Regen. Ag.'].map((t,i) => (
-            <button key={t} style={{ ...tabBtn, color:i===0?S.text:S.textDim, borderColor:i===0?S.borderStrong:'transparent', background:i===0?S.surface:'transparent' }}>{t}</button>
-          ))}
+          <button style={{ ...tabBtn, color:S.text, borderColor:S.borderStrong, background:S.surface }}>Module A — Woodland Creation</button>
         </div>
-        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-          <Pill color={S.amber} bg={S.amberDim}>MNS-RM01 Active</Pill>
-          {(!results.invalid && results.vintageNetEr > 0 && !(results.deficit > 0))
-            ? <Pill color={S.accent} bg={S.accentDim}>Audit ready</Pill>
-            : <Pill color={S.amber} bg={S.amberDim}>Not ready</Pill>}
-        </div>
+        <Pill color={S.amber} bg={S.amberDim}>Preliminary estimate only</Pill>
       </div>
-
-      {/* ── Sub-bar ── */}
-      <div style={{ background:S.surface, borderBottom:`1px solid ${S.border}`, padding:'0 32px', display:'flex', alignItems:'center', gap:28, height:38 }}>
-        {[['Protocol','MNS-M01'],['Methodology','UKFC Yield Tables'],['CF','0.47 (IPCC 2006)'],['Registry','Isle of Man']].map(([k,v]) => (
-          <div key={k} style={{ display:'flex', alignItems:'center', gap:7 }}>
-            <Label>{k}</Label>
-            <span style={{ fontFamily:S.font, fontSize:11, color:S.textMuted }}>{v}</span>
-          </div>
+      <div style={{ background:S.surface, borderBottom:`1px solid ${S.border}`, padding:'8px 32px', display:'flex', alignItems:'center', gap:22, flexWrap:'wrap' }}>
+        {[['Protocol','MNS-M01'],['Method','Module A yield curves'],['Factor set','UK Government 2026'],['Registry','Isle of Man']].map(([k,v]) => (
+          <div key={k} style={{ display:'flex', alignItems:'center', gap:7 }}><Label>{k}</Label><span style={{ fontFamily:S.font, fontSize:11, color:S.textMuted }}>{v}</span></div>
         ))}
       </div>
 
-      {/* ── Body ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 420px', minHeight:'calc(100vh - 94px)' }}>
+      <div id="calc-layout" style={{ display:'grid', gridTemplateColumns:'minmax(0,1fr) 420px', minHeight:'calc(100vh - 94px)' }}>
+        <div style={{ padding:'28px 32px', borderRight:`1px solid ${S.border}`, display:'flex', flexDirection:'column', gap:20, minWidth:0 }}>
+          <div style={{ padding:'12px 16px', background:S.amberDim, border:`1px solid ${S.amber}35`, borderRadius:6, fontSize:12, lineHeight:1.55, color:S.textMuted }}>
+            <strong style={{ color:S.amber }}>Estimate only.</strong> This file still contains proxy yield curves for some species. Outputs are not suitable for issuance until the Registry-approved yield data, uncertainty schedule and project inputs have been validated. For projects with distinct monitoring strata, calculate each stratum separately and aggregate under approved Registry rules. The calculator does not approve credits.
+          </div>
 
-        {/* LEFT */}
-        <div style={{ padding:'28px 32px', borderRight:`1px solid ${S.border}`, display:'flex', flexDirection:'column', gap:20, overflowY:'auto' }}>
-
-          {/* Site Profile */}
           <Card>
             <SectionHeader>Site Profile</SectionHeader>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
-              <Field label="Net Planted Area (ha)" note="Excludes MNS-mandated 20% open space">
+              <Field label="Net planted area (ha)" note="Enter planted area after excluding open space.">
                 <NumInput value={area} onChange={setArea} min={0.1} step={0.1} />
               </Field>
-              <Field label="Soil Disturbance Category">
-                <Select value={soilType} onChange={setSoilType} options={[['mineral','Mineral — 5% penalty'],['peat','Organo-Mineral / Peat — 15%']]} />
+              <Field label="Verification vintage">
+                <Select value={vintageYear} onChange={v=>setVintageYear(Number(v))} options={VINTAGE_YEARS.map(y=>[y,y===5?'Year 5 — first verification':y===50?'Year 50 — final vintage':`Year ${y}`])} />
               </Field>
-              <Field label="Vintage Year" style={{ gridColumn:'1 / -1' }}>
-                <Select value={vintageYear} onChange={v=>setVintageYear(Number(v))} options={VINTAGE_YEARS.map(y=>[y,y===5?'Yr 5 — Establishment audit':y===50?'Yr 50 — Final':`Yr ${y}`])} />
+              <Field label="Verified baseline stock change (tCO₂e)" note="Enter the change for this vintage. Negative changes give no baseline deduction.">
+                <NumInput value={baselineChange} onChange={setBaselineChange} step={0.1} />
+              </Field>
+              <Field label="Previous carbon deficit (tCO₂e)" note="Carry-forward deficit from the previous verification record.">
+                <NumInput value={prevDeficit} onChange={setPrevDeficit} min={0} step={0.1} />
               </Field>
             </div>
           </Card>
 
-          {/* Species Mix Matrix */}
           <Card>
-            <SectionHeader>Species Mix Matrix</SectionHeader>
+            <SectionHeader>Species Mix and Yield Class</SectionHeader>
             <SpeciesMixMatrix rows={speciesMix} onChange={setSpeciesMix} area={area} coniferPct={coniferPct} />
-            {mixValid && speciesMix.length>0 && (
-              <div style={{ marginTop:16, paddingTop:14, borderTop:`1px solid ${S.border}` }}>
-                <Label style={{ display:'block', marginBottom:10 }}>Net Planted Area — {area} ha total</Label>
-                <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-                  {speciesMix.map((r,i) => (
-                    <div key={i} style={{ padding:'7px 12px', background:S.bg, border:`1px solid ${S.border}`, borderRadius:6 }}>
-                      <div style={{ fontFamily:S.fontSans, fontSize:10, color:S.textDim, marginBottom:3 }}>{SPECIES_DATA[r.species].label}</div>
-                      <div style={{ fontFamily:S.font, fontSize:12, color:S.textMuted }}>
-                        {((r.pct/100)*area).toFixed(2)} ha
-                        <span style={{ color:S.textDim, marginLeft:8 }}>SG {SPECIES_DATA[r.species].sg}</span>
-                        <span style={{ color:S.textDim, marginLeft:8 }}>YC {r.yc}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </Card>
-
-          {/* Stocking Audit */}
-          <Card>
-            <SectionHeader>Stocking Audit</SectionHeader>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
-              <Field label="Target planting density (stems/ha)">
-                <NumInput value={targetStems} onChange={setTargetStems} />
-              </Field>
-              <Field label="Verified surviving stems/ha">
-                <NumInput value={actualStems} onChange={setActualStems} />
-              </Field>
-            </div>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:spfColor===S.red?S.redDim:spfColor===S.amber?S.amberDim:S.accentDim, border:`1px solid ${spfColor}25`, borderRadius:6, padding:'10px 14px' }}>
-              <div>
-                <span style={{ fontFamily:S.fontSans, fontSize:12, color:spfColor, fontWeight:500 }}>Stocking Performance Factor (SPF)</span>
-                {targetStems < 2500 && (
-                  <div style={{ fontFamily:S.fontSans, fontSize:10, color:S.blue, marginTop:3 }}>
-                    Density factor {(Math.min(1, targetStems/2500)*100).toFixed(0)}% applied — below 2,500 stems/ha standard
-                  </div>
-                )}
-              </div>
-              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                <span style={{ fontFamily:S.font, fontSize:13, color:spfColor }}>{actualStems}/{targetStems}</span>
-                <Pill color={spfColor} bg={spfColor+'15'}>{spfStatus}</Pill>
-              </div>
+            <div style={{ marginTop:14, paddingTop:12, borderTop:`1px solid ${S.border}`, fontSize:11, color:S.textMuted, lineHeight:1.6 }}>
+              Species percentages are used to allocate the net planted area and modelled biomass. The calculator screens the conifer and ash limits and an indicative understory mix; the VVB must verify actual surviving stems and full ecological eligibility.
             </div>
           </Card>
 
-          {/* MNS-RM01 Integrity */}
           <Card>
-            <SectionHeader>MNS-RM01 Integrity Parameters</SectionHeader>
+            <SectionHeader>Year 5 Establishment Audit</SectionHeader>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
-              <Field label="Model RMSE + Sampling Error (U_t)" note="Module A §8.1 exemption: default 0% unless Predictive Validity fails">
-                <div style={{ position:'relative' }}>
-                  <input type="number" value={rmseInput} min={0} max={50} step={0.1}
-                    onChange={e=>setRmseInput(Number(e.target.value))}
-                    style={{ ...iBase, paddingRight:26 }}
-                    onFocus={e=>e.target.style.borderColor=S.accent}
-                    onBlur={e=>e.target.style.borderColor=S.borderStrong} />
-                  <span style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', fontFamily:S.font, fontSize:11, color:S.textDim, pointerEvents:'none' }}>%</span>
-                </div>
+              <Field label="Target planting density (stems/ha)" note="Must not exceed 2,500 stems/ha.">
+                <NumInput value={targetStems} onChange={setTargetStems} min={1} max={2500} step={1} />
               </Field>
-              <Field label="Audited RM01 Risk Score → B_t" note={`Buffer B_t = RM01 risk score = ${enforcedBuffer}%${bufferLifted ? ' · at/above 20% market reference' : ''}`}>
-                <div style={{ position:'relative' }}>
-                  <input type="number" value={rm01Score} min={0} max={50} step={0.5}
-                    onChange={e=>setRm01Score(Number(e.target.value))}
-                    style={{ ...iBase, paddingRight:26, color:bufferLifted?S.amber:S.text, borderColor:bufferLifted?S.amber+'60':S.borderStrong }}
-                    onFocus={e=>e.target.style.borderColor=S.accent}
-                    onBlur={e=>{e.target.style.borderColor=bufferLifted?S.amber+'60':S.borderStrong;}} />
-                  <span style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', fontFamily:S.font, fontSize:11, color:S.textDim, pointerEvents:'none' }}>%</span>
-                </div>
-              </Field>
-              <Field label="Previous Ledger Deficit (HWM Carryover)" note="Cumulative deficit — repaid before this period's issuance">
-                <div style={{ position:'relative' }}>
-                  <input type="number" value={prevDeficit} min={0} step={0.01}
-                    onChange={e=>setPrevDeficit(Number(e.target.value))}
-                    style={{ ...iBase, paddingRight:56, color:prevDeficit>0?S.red:S.text, borderColor:prevDeficit>0?S.red+'50':S.borderStrong }}
-                    onFocus={e=>e.target.style.borderColor=S.accent}
-                    onBlur={e=>{e.target.style.borderColor=prevDeficit>0?S.red+'50':S.borderStrong;}} />
-                  <span style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', fontFamily:S.font, fontSize:11, color:S.textDim, pointerEvents:'none' }}>tCO₂e</span>
-                </div>
-              </Field>
-              <Field label="Previously Issued Credits (MBU)" note="Total MBU issued in all prior vintages">
-                <div style={{ position:'relative' }}>
-                  <input type="number" value={prevIssued} min={0} step={1}
-                    onChange={e=>setPrevIssued(Number(e.target.value))}
-                    style={{ ...iBase, paddingRight:48 }}
-                    onFocus={e=>e.target.style.borderColor=S.accent}
-                    onBlur={e=>e.target.style.borderColor=S.borderStrong} />
-                  <span style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', fontFamily:S.font, fontSize:11, color:S.textDim, pointerEvents:'none' }}>MBU</span>
-                </div>
+              <Field label="Verified surviving stems/ha" note="Used to calculate the Module A stocking penalty factor.">
+                <NumInput value={actualStems} onChange={setActualStems} min={0} step={1} />
               </Field>
             </div>
-            {(bufferLifted||prevDeficit>0) && (
-              <div style={{ marginTop:14, display:'flex', flexDirection:'column', gap:8 }}>
-                {bufferLifted && (
-                  <div style={{ padding:'9px 14px', background:S.amberDim, border:`1px solid ${S.amber}30`, borderRadius:6 }}>
-                    <span style={{ fontFamily:S.fontSans, fontSize:11, color:S.amber }}>Buffer set at the RM01 risk score ({enforcedBuffer}%) — no minimum floor; 20% is the market reference</span>
-                  </div>
-                )}
-                {prevDeficit>0 && (
-                  <div style={{ padding:'9px 14px', background:S.redDim, border:`1px solid ${S.red}25`, borderRadius:6 }}>
-                    <span style={{ fontFamily:S.fontSans, fontSize:11, color:S.red }}>HWM carryover of {prevDeficit.toFixed(2)} tCO₂e — repaid before final issuance</span>
-                  </div>
-                )}
+            <div style={{ marginTop:12, display:'flex', alignItems:'center', justifyContent:'space-between', background:spfColor===S.red?S.redDim:spfColor===S.amber?S.amberDim:S.accentDim, border:`1px solid ${spfColor}25`, borderRadius:6, padding:'10px 14px', gap:12 }}>
+              <div>
+                <div style={{ fontSize:12, color:spfColor, fontWeight:600 }}>Stocking penalty factor (SPF)</div>
+                <div style={{ fontSize:10, color:S.textMuted, marginTop:3 }}>Density scaling factor: {(densityFactor*100).toFixed(0)}% of the 2,500 stems/ha reference.</div>
               </div>
-            )}
+              <Pill color={spfColor} bg={spfColor+'15'}>{spfStatus}</Pill>
+            </div>
+            {spf===0 && <div style={{ marginTop:10, color:S.red, fontSize:11, lineHeight:1.5 }}>Survival is below 50% of target. Module A issuance is blocked until replanting and a subsequent establishment audit.</div>}
           </Card>
 
-          {/* Lifetime Emissions */}
           <Card>
-            <SectionHeader>Lifetime Emissions & Leakage (Yr 0 Deductions)</SectionHeader>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:24 }}>
-              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-                <Field label="Fossil fuel (litres of diesel)"><NumInput value={fuelLiters} onChange={setFuelLiters} /></Field>
-                <Field label="Pre-project clearance (m³ biomass)"><NumInput value={clearedVol} onChange={setClearedVol} /></Field>
-                {clearedVol>0 && <Toggle checked={burned} onChange={setBurned} label="Biomass burned on-site (+15% CH₄/N₂O)" />}
-              </div>
-              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-                <Field label="Displaced livestock (headcount)"><NumInput value={displacedSheep} onChange={setDisplacedSheep} /></Field>
-                <Toggle checked={safeHarbor} onChange={setSafeHarbor} label="Herd permanently reduced (safe harbor)" />
-                <Toggle checked={browsedScrub} onChange={setBrowsedScrub} label="Active managed browsing — evidence held (R:S 1.07: hawthorn, blackthorn, sallow)" />
-                {displacedSheep>0 && (
-                  <div style={{ padding:'9px 14px', background:safeHarbor?S.blueDim:S.amberDim, border:`1px solid ${(safeHarbor?S.blue:S.amber)}30`, borderRadius:6 }}>
-                    <span style={{ fontFamily:S.fontSans, fontSize:11, color:safeHarbor?S.blue:S.amber }}>
-                      {safeHarbor?'40% default market leakage applied':'10yr activity-shifting leakage applied'}
-                    </span>
-                  </div>
-                )}
-              </div>
+            <SectionHeader>Uncertainty Schedule</SectionHeader>
+            <div style={{ fontSize:11, color:S.textMuted, lineHeight:1.55, marginBottom:12 }}>
+              Enter the approved deduction for each species and yield-class combination from the Registry schedule. No zero-rate default is assumed. A schedule reference and a rate for every active combination are required to calculate the final vintage balance.
+            </div>
+            <Field label="Approved Registry uncertainty schedule reference">
+              <input type="text" value={uncertaintyScheduleRef} onChange={e=>setUncertaintyScheduleRef(e.target.value)} placeholder="Schedule ID / version" style={inputStyle} />
+            </Field>
+            <div style={{ display:'grid', gridTemplateColumns:'minmax(0,1fr) 110px', gap:8, marginTop:14, paddingBottom:7, borderBottom:`1px solid ${S.border}` }}>
+              <Label>Species · Yield class</Label><Label>Deduction (%)</Label>
+            </div>
+            {speciesMix.map((row, i) => {
+              const key = `${row.species}:${row.yc}`;
+              const value = uncertaintyRates[key] === undefined ? '' : uncertaintyRates[key];
+              return <div key={`${key}-${i}`} style={{ display:'grid', gridTemplateColumns:'minmax(0,1fr) 110px', gap:8, alignItems:'center', padding:'7px 0', borderBottom:`1px solid ${S.border}` }}>
+                <span style={{ fontSize:12, color:S.text }}>{SPECIES_DATA[row.species].label} · YC {row.yc}</span>
+                <input type="number" min="0" max="100" step="0.1" value={value} onChange={e=>setUncertaintyRates(old=>({...old,[key]:e.target.value===''?'':Number(e.target.value)}))} placeholder="Required" style={{ ...iBase, textAlign:'right', padding:'7px 8px' }} />
+              </div>;
+            })}
+          </Card>
+
+          <Card>
+            <SectionHeader>Buffer Contribution</SectionHeader>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+              <Field label="Approved buffer contribution rate (%)" note="Enter the rate returned by MNS-RM01. This field does not grant approval.">
+                <Select value={bufferRate} onChange={v=>setBufferRate(Number(v))} options={[[12,'12%'],[14,'14%'],[16,'16%'],[18,'18%'],[20,'20% — default']]} />
+              </Field>
+              <Field label="Approval record reference" note="Required when applying a rate below 20%.">
+                <input type="text" value={bufferApprovalRef} onChange={e=>setBufferApprovalRef(e.target.value)} placeholder={bufferRate<20?'Required for <20%':'Optional at 20%'} style={inputStyle} />
+              </Field>
+            </div>
+            <div style={{ marginTop:12, fontSize:11, color:S.textMuted, lineHeight:1.55 }}>
+              The buffer volume is calculated from the positive balance after baseline, project-emission, leakage and applicable initial-clearance deductions, but before the uncertainty deduction. The rate and the volume withheld are recorded separately.
             </div>
           </Card>
 
+          <Card>
+            <SectionHeader>Project Emissions</SectionHeader>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+              <Field label="Fuel used in this vintage (litres)" note="Use fuel records for the current five-year period.">
+                <NumInput value={fuelLiters} onChange={setFuelLiters} min={0} step={1} />
+              </Field>
+              <Field label="Fuel type / conversion factor">
+                <Select value={fuelType} onChange={setFuelType} options={[["gas_oil","Gas oil / red diesel · 2026"],["diesel","Diesel (forecourt) · 2026"],["custom","Other / custom factor"]]} />
+              </Field>
+              {fuelType==='custom' && <>
+                <Field label="Custom factor (tCO₂e/litre)"><input type="number" min="0" step="0.000001" value={customFuelFactor} onChange={e=>setCustomFuelFactor(e.target.value)} placeholder="Enter approved factor" style={inputStyle} /></Field>
+                <Field label="Factor source/version"><input type="text" value={customFuelFactorRef} onChange={e=>setCustomFuelFactorRef(e.target.value)} placeholder="Source and year" style={inputStyle} /></Field>
+              </>}
+              <Field label="Soil preparation">
+                <Select value={soilType} onChange={setSoilType} options={[["none","No mechanical preparation"],["mineral","Mechanical preparation — mineral soil (5%)"],["organo","Mechanical preparation — organo-mineral / shallow peat (15%)"]]} />
+              </Field>
+              <Field label="Area mechanically disturbed (ha)" note="Applied only to the Year 5 soil disturbance deduction.">
+                <NumInput value={disturbedArea} onChange={setDisturbedArea} min={0} step={0.1} max={area} />
+              </Field>
+              <Field label="Cleared above-ground biomass (dry tonnes)" note="Pre-project biomass; deducted only at Year 5.">
+                <NumInput value={clearedAGB} onChange={setClearedAGB} min={0} step={0.1} />
+              </Field>
+              <Field label="Cleared below-ground biomass (dry tonnes)" note="Enter where root biomass is removed and must be accounted for.">
+                <NumInput value={clearedBGB} onChange={setClearedBGB} min={0} step={0.1} />
+              </Field>
+            </div>
+            {clearedDryTonnes>0 && vintageYear===5 && <div style={{ marginTop:14, paddingTop:12, borderTop:`1px solid ${S.border}` }}>
+              <Toggle checked={burned} onChange={setBurned} label="Pre-project biomass burned on-site" />
+              {burned && <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginTop:12 }}>
+                <Field label="Additional CH₄/N₂O factor (tCO₂e / dry tonne)" note="Additional non-CO₂ emissions only; enter the approved Tier 1 combined factor.">
+                  <input type="number" min="0" step="0.0001" value={burnFactor} onChange={e=>setBurnFactor(e.target.value)} placeholder="Required" style={inputStyle} />
+                </Field>
+                <Field label="IPCC Tier 1 source/version">
+                  <input type="text" value={burnFactorRef} onChange={e=>setBurnFactorRef(e.target.value)} placeholder="Source and version" style={inputStyle} />
+                </Field>
+              </div>}
+            </div>}
+            <div style={{ marginTop:12, fontSize:10, color:S.textDim, lineHeight:1.55 }}>
+              Built-in direct combustion factors use the 2026 UK Government conversion-factor set: gas oil/red diesel 0.0027554 tCO₂e/litre; forecourt diesel 0.0025835 tCO₂e/litre. Check the appropriate factor for the fuel and reporting period before use. <a href={factorSourceUrl} target="_blank" rel="noreferrer" style={{ color:S.accent }}>Official conversion factors</a>.
+            </div>
+          </Card>
+
+          <Card>
+            <SectionHeader>Livestock Leakage</SectionHeader>
+            <div style={{ fontSize:11, color:S.textMuted, lineHeight:1.55, marginBottom:12 }}>This section calculates livestock leakage. If crop production is displaced, use a separate approved calculation; this calculator does not quantify crop-production leakage.</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+              <Field label="Displaced livestock during this vintage (headcount)">
+                <NumInput value={displacedLivestock} onChange={setDisplacedLivestock} min={0} step={1} />
+              </Field>
+              <Field label="Livestock type">
+                <Select value={livestockLabel} onChange={setLivestockLabel} options={[["upland_sheep","Upland sheep"],["beef_cattle","Beef cattle"],["dairy_cattle","Dairy cattle"],["goat","Goats"],["other","Other livestock"]]} />
+              </Field>
+              {displacedLivestock>0 && <>
+                <Field label="Tier 1 emission factor (tCO₂e/head/year)" note="Use the factor for the selected livestock type.">
+                  <input type="number" min="0" step="0.0001" value={livestockEF} onChange={e=>setLivestockEF(e.target.value)} placeholder="Required" style={inputStyle} />
+                </Field>
+                <Field label="Livestock factor source/version">
+                  <input type="text" value={livestockEFRef} onChange={e=>setLivestockEFRef(e.target.value)} placeholder="IPCC / DEFRA reference" style={inputStyle} />
+                </Field>
+              </>}
+              <div style={{ gridColumn:'1 / -1' }}><Toggle checked={cropProductionDisplaced} onChange={setCropProductionDisplaced} label="Crop production is also displaced" /></div>
+              <Field label="Leakage condition" style={{ gridColumn:'1 / -1' }}>
+                <Select value={safeHarbor} onChange={setSafeHarbor} options={[["none","No safe harbour demonstrated"],["historical_absence","No grazing/crop production in preceding 5 years"],["permanent_reduction","Permanent herd reduction"],["relocation","Relocation without increased stocking density"]]} />
+              </Field>
+              {safeHarbor!=='none' && <Field label="Evidence record reference" style={{ gridColumn:'1 / -1' }}>
+                <input type="text" value={safeHarborEvidence} onChange={e=>setSafeHarborEvidence(e.target.value)} placeholder="Record supporting the selected condition" style={inputStyle} />
+              </Field>}
+              {safeHarbor==='relocation' && <Field label="Change in receiving parcel LU/ha vs 5-year average (%)" style={{ gridColumn:'1 / -1' }} note="Must be no more than 10% for this safe harbour.">
+                <NumInput value={receivingDensityIncrease} onChange={setReceivingDensityIncrease} step={0.1} />
+              </Field>}
+            </div>
+            {marketLeakageApplies && <div style={{ marginTop:14, paddingTop:12, borderTop:`1px solid ${S.border}` }}>
+              <div style={{ fontSize:12, color:S.text, fontWeight:600, marginBottom:10 }}>Market leakage</div>
+              <div style={{ fontSize:11, color:S.textMuted, lineHeight:1.55, marginBottom:12 }}>Permanent herd reduction may remove activity-shifting leakage but can still displace production. Use a suitable local estimate, a suitable peer-reviewed UK proxy, or the 0.40 default if neither is available.</div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+                <Field label="Leakage fraction source">
+                  <Select value={marketLFSource} onChange={v=>setMarketLFSource(v)} options={[["iom","Isle of Man estimate"],["uk","Peer-reviewed UK proxy"],["default","No suitable estimate — use 40% default"]]} />
+                </Field>
+                {marketLFSource!=='default' && <Field label="Calculated leakage fraction (%)" note="Enter the fraction calculated from the documented elasticity evidence.">
+                  <input type="number" min="0" max="100" step="0.1" value={marketLFPercent} onChange={e=>setMarketLFPercent(e.target.value)} placeholder="Required" style={inputStyle} />
+                </Field>}
+                {marketLFSource!=='default' && <Field label="Elasticity evidence/source reference" style={{ gridColumn:'1 / -1' }}>
+                  <input type="text" value={marketLFRef} onChange={e=>setMarketLFRef(e.target.value)} placeholder="Commodity, source and justification for use in the Isle of Man" style={inputStyle} />
+                </Field>}
+              </div>
+              <div style={{ marginTop:8, fontSize:11, color:S.textMuted }}>Applied leakage fraction: {marketLFNum===null?'—':`${(marketLFNum*100).toFixed(1)}%`}</div>
+            </div>}
+            {displacedLivestock>0 && safeHarbor==='historical_absence' && <div style={{ marginTop:10, color:S.amber, fontSize:11 }}>A positive displaced-livestock count conflicts with the historical-absence condition. Unless the condition is evidenced, the calculator applies the activity-shifting leakage deduction.</div>}
+            {safeHarbor==='relocation' && receivingDensityIncrease>10 && <div style={{ marginTop:10, color:S.amber, fontSize:11 }}>The receiving parcel exceeds the 10% stocking-density limit. This does not qualify for the relocation safe harbour; activity-shifting leakage is applied.</div>}
+          </Card>
+
+          <Card>
+            <SectionHeader>Other Methodology Conditions</SectionHeader>
+            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+              <Toggle checked={browsedScrub} onChange={setBrowsedScrub} label="Apply alternative root-to-shoot ratio (1.07) to hawthorn, blackthorn and goat willow" />
+              {browsedScrub && <Field label="Evidence/source reference">
+                <input type="text" value={browsingEvidence} onChange={e=>setBrowsingEvidence(e.target.value)} placeholder="Evidence that supports the alternative ratio" style={inputStyle} />
+              </Field>}
+              <Toggle checked={reversalDetected} onChange={setReversalDetected} label="A reversal or major disturbance has affected a stratum" />
+              {reversalDetected && <div style={{ color:S.red, fontSize:11, lineHeight:1.5 }}>Module A must not be used to estimate post-reversal stocks. Quantify the affected stratum under Module B before further issuance.</div>}
+            </div>
+          </Card>
         </div>
 
-        {/* RIGHT: Issuance Ledger */}
-        <div style={{ background:S.surfaceAlt, borderLeft:`1px solid ${S.border}`, position:'sticky', top:94, height:'calc(100vh - 94px)', overflowY:'auto', display:'flex', flexDirection:'column' }}>
-
+        <div id="calc-ledger" style={{ background:S.surfaceAlt, borderLeft:`1px solid ${S.border}`, position:'sticky', top:94, height:'calc(100vh - 94px)', overflowY:'auto', display:'flex', flexDirection:'column', minWidth:0 }}>
           <div style={{ padding:'18px 24px 16px', borderBottom:`1px solid ${S.border}`, background:S.surface }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <span style={{ fontFamily:S.fontSans, fontSize:13, fontWeight:600, color:S.text, letterSpacing:'-0.01em' }}>Issuance Ledger</span>
-              {results.invalid === 'conifer'
-                ? <Pill color={S.red} bg={S.redDim}>§10.1 Violation</Pill>
-                : <Pill color={S.text} bg={S.bg} border={S.borderStrong}>Year {vintageYear} Audit</Pill>
-              }
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
+              <span style={{ fontSize:13, fontWeight:600, color:S.text }}>Vintage calculation</span>
+              <Pill color={allRequiredInputsPresent?S.accent:S.amber} bg={allRequiredInputsPresent?S.accentDim:S.amberDim}>{allRequiredInputsPresent?'Inputs complete':'Inputs incomplete'}</Pill>
             </div>
+            <div style={{ fontSize:11, color:S.textMuted, marginTop:5 }}>Year {vintageYear} · previous period {vintageYear===5?'Project start':`Year ${vintageYear-5}`}</div>
           </div>
-
-          {results.invalid ? (
-            <div style={{ padding:24, display:'flex', alignItems:'center', justifyContent:'center', flex:1 }}>
-              {results.invalid === 'mix' && (
-                <div style={{ textAlign:'center' }}>
-                  <div style={{ fontFamily:S.font, fontSize:13, color:S.amber, marginBottom:8 }}>Mix ≠ 100%</div>
-                  <div style={{ fontFamily:S.fontSans, fontSize:11, color:S.textMuted }}>Adjust species percentages to continue</div>
-                </div>
-              )}
-              {results.invalid === 'conifer' && (
-                <div style={{ width:'100%' }}>
-                  <div style={{ background:S.redDim, border:`1px solid ${S.red}25`, borderRadius:8, padding:'20px 20px 18px' }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
-                      <div style={{ width:8, height:8, borderRadius:'50%', background:S.red, flexShrink:0 }} />
-                      <span style={{ fontFamily:S.fontSans, fontSize:11, fontWeight:600, color:S.red, textTransform:'uppercase', letterSpacing:'0.06em' }}>Protocol Violation</span>
-                    </div>
-                    <div style={{ fontFamily:S.fontSans, fontSize:13, color:S.text, fontWeight:500, marginBottom:6 }}>
-                      MNS-M01 §10.1 — Native Conifer Cap
-                    </div>
-                    <div style={{ fontFamily:S.fontSans, fontSize:11, color:S.textMuted, lineHeight:1.7, marginBottom:16 }}>
-                      Scots Pine and Yew combined must not exceed 20% of the total species mix. The current allocation breaches this cap and issuance cannot proceed.
-                    </div>
-                    {/* Current vs limit display */}
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                      <div style={{ padding:'10px 12px', background:S.surface, border:`1px solid ${S.red}20`, borderRadius:6 }}>
-                        <div style={{ fontFamily:S.fontSans, fontSize:9, color:S.textDim, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:4 }}>Current conifer mix</div>
-                        <div style={{ fontFamily:S.font, fontSize:20, color:S.red }}>{coniferPct.toFixed(1)}<span style={{ fontSize:11, marginLeft:3 }}>%</span></div>
-                      </div>
-                      <div style={{ padding:'10px 12px', background:S.surface, border:`1px solid ${S.border}`, borderRadius:6 }}>
-                        <div style={{ fontFamily:S.fontSans, fontSize:9, color:S.textDim, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:4 }}>Protocol limit</div>
-                        <div style={{ fontFamily:S.font, fontSize:20, color:S.textMuted }}>20.0<span style={{ fontSize:11, marginLeft:3 }}>%</span></div>
-                      </div>
-                    </div>
-                    <div style={{ marginTop:12, fontFamily:S.font, fontSize:11, color:S.red }}>
-                      Reduce Scots Pine / Yew by {(coniferPct - 20).toFixed(1)}% to unlock issuance.
-                    </div>
-                  </div>
-                </div>
-              )}
+          <div style={{ padding:'0 24px 28px', flex:1 }}>
+            <div style={{ paddingTop:20, paddingBottom:16, borderBottom:`1px solid ${S.border}` }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8, gap:8 }}>
+                <div><div style={{ fontSize:12, color:S.textMuted }}>Current modelled stock</div><div style={{ fontSize:10, color:S.textDim }}>Cproject at Year {vintageYear}</div></div>
+                <span style={{ fontFamily:S.font, fontSize:19, color:S.text }}>{fmt(currentStock.total)}<span style={{ fontSize:10, color:S.textDim, marginLeft:4 }}>tCO₂e</span></span>
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, gap:8 }}>
+                <span style={{ fontSize:12, color:S.textMuted }}>Previous modelled stock</span>
+                <span style={{ fontFamily:S.font, fontSize:13, color:S.textMuted }}>{fmt(previousStock.total)} tCO₂e</span>
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingTop:10, borderTop:`1px solid ${S.borderStrong}`, gap:8 }}>
+                <span style={{ fontSize:12, fontWeight:600, color:S.text }}>Change in project stocks</span>
+                <span style={{ fontFamily:S.font, fontSize:17, color:projectStockChange>=0?S.accent:S.red }}>{fmt(projectStockChange)} tCO₂e</span>
+              </div>
+              <div style={{ marginTop:10 }}>
+                <Label style={{ display:'block', marginBottom:6 }}>Species change</Label>
+                {speciesBreakdown.map((r,i)=><div key={`${r.species}-${r.yc}-${i}`} style={{ display:'flex', justifyContent:'space-between', gap:10, padding:'5px 0', borderBottom:`1px solid ${S.border}` }}>
+                  <div><div style={{ fontSize:11, color:S.text }}>{SPECIES_DATA[r.species].label}</div><div style={{ fontSize:9, color:S.textDim }}>{r.pct}% · {r.ha.toFixed(2)} ha · YC {r.yc}</div></div>
+                  <span style={{ fontFamily:S.font, fontSize:11, color:S.textMuted }}>{fmt(r.deltaStock)}</span>
+                </div>)}
+              </div>
+              <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginTop:12 }}>
+                {[['Volume',`${fmt(currentStock.volume,1)} m³`],['BEF',`${BEF}`],['R:S',`${R2S}${browsedScrub&&browsingEvidence.trim()?' / 1.07':''}`],['CF',`${CF}`],['44/12',`${STOICH.toFixed(3)}`],['Density factor',`${densityFactor.toFixed(2)}`],['SPF',`${spf.toFixed(2)}`]].map(([k,v])=><div key={k}><div style={{ fontSize:9, color:S.textDim, textTransform:'uppercase', marginBottom:2 }}>{k}</div><div style={{ fontFamily:S.font, fontSize:11, color:S.textMuted }}>{v}</div></div>)}
+              </div>
             </div>
-          ) : (
-            <div style={{ padding:'0 24px 28px', flex:1 }}>
 
-              {/* Gross C_project */}
-              <div style={{ paddingTop:20, paddingBottom:16, borderBottom:`1px solid ${S.border}` }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:14 }}>
-                  <div>
-                    <div style={{ fontFamily:S.fontSans, fontSize:13, color:S.textMuted, marginBottom:2 }}>Gross Project Carbon</div>
-                    <div style={{ fontFamily:S.font, fontSize:11, color:S.textDim }}>C_project (Cumulative · Yr {vintageYear})</div>
-                  </div>
-                  <span style={{ fontFamily:S.font, fontSize:20, fontWeight:500, color:S.text, letterSpacing:'-0.03em' }}>
-                    {fmt(results.cProject)}<span style={{ fontSize:11, color:S.textDim, marginLeft:4 }}>tCO₂e</span>
-                  </span>
-                </div>
-
-                {/* Per-species breakdown — event-ID style green mono */}
-                {results.speciesBreakdown?.length>0 && (
-                  <div style={{ marginBottom:12 }}>
-                    <Label style={{ display:'block', marginBottom:6, fontSize:9 }}>Species contribution</Label>
-                    {results.speciesBreakdown.map((r,i) => (
-                      <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'5px 0 5px 10px', borderBottom:`1px solid ${S.border}` }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                          <div style={{ width:2, height:14, background:S.accent+'60', borderRadius:1 }} />
-                          <div>
-                            {/* Species name in registry accent green mono — mirrors event ID style */}
-                            <div style={{ fontFamily:S.font, fontSize:11, color:S.accent }}>{r.species}_{String(i+1).padStart(2,'0')}</div>
-                            <div style={{ fontFamily:S.fontSans, fontSize:10, color:S.textMuted }}>{SPECIES_DATA[r.species].label}</div>
-                            <div style={{ fontFamily:S.font, fontSize:9, color:S.textDim }}>{r.pct}% · {r.ha.toFixed(2)} ha · SG {SPECIES_DATA[r.species].sg} · YC {r.yc} · {r.vBasePerHa} m³/ha × DF {(Math.min(1,targetStems/2500)).toFixed(2)} × SPF {(results.spf??1).toFixed(2)}</div>
-                          </div>
-                        </div>
-                        <span style={{ fontFamily:S.font, fontSize:11, color:S.textMuted }}>{r.c.toFixed(2)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
-                  {[['Volume',`${fmt(results.totalVolume,1)} m³`],['BEF',`${BEF}`],['R:S',`${R2S}${browsedScrub ? ' / 1.07' : ''}`],['CF',`${CF}`],['44/12',`${STOICH.toFixed(3)}`]].map(([k,v])=>(
-                    <div key={k}>
-                      <div style={{ fontFamily:S.fontSans, fontSize:9, color:S.textDim, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:2 }}>{k}</div>
-                      <div style={{ fontFamily:S.font, fontSize:11, color:S.textMuted }}>{v}</div>
-                    </div>
-                  ))}
-                </div>
+            <div style={{ paddingTop:14 }}>
+              <Label style={{ display:'block', marginBottom:8 }}>Deductions for this vintage</Label>
+              <LedgerRow label="Baseline change" note={`max(0, ${fmt(baselineChange)} tCO₂e)`} value={`−${fmt(baselineDeduction)}`} />
+              <LedgerRow label="Fuel combustion" note={`${fuelLiters} L · ${fuelFactor===null?'factor missing':fuelFactorLabel}`} value={projectFuelEmissions===null?'Pending':`−${fmt(projectFuelEmissions)}`} />
+              <LedgerRow label="Soil disturbance" note={vintageYear===5&&soilType!=='none'?`${soilFactor*100}% on ${fmt(disturbedArea,1)} disturbed ha`:'Not applicable this vintage'} value={`−${fmt(soilDeduction)}`} />
+              {vintageYear===5&&clearedDryTonnes>0&&<LedgerRow label="Pre-project biomass clearance" note={`${fmt(clearedAGB,1)} t AGB + ${fmt(clearedBGB,1)} t BGB`} value={`−${fmt(clearanceEmission)}`} />}
+              {vintageYear===5&&burned&&clearedDryTonnes>0&&<LedgerRow label="Additional burning emissions" note="Tier 1 CH₄/N₂O factor" value={burningExtraEmissions===null?'Pending':`−${fmt(burningExtraEmissions)}`} />}
+              {displacedLivestock>0&&<LedgerRow label="Activity-shifting leakage" note={safeHarborValid?'Safe harbour evidenced':`10-year default · ${livestockEFNum===null?'factor missing':`${fmt(livestockEFNum,4)} tCO₂e/head/year`}`} value={activityLeakage===null?'Pending':`−${fmt(activityLeakage)}`} />}
+              {marketLeakageApplies&&<LedgerRow label="Market leakage" note={`LF ${marketLFNum===null?'pending':`${(marketLFNum*100).toFixed(1)}%`}`} value={marketLeakage===null?'Pending':`−${fmt(marketLeakage)}`} color={S.blue} />}
+              <div style={{ display:'flex', justifyContent:'space-between', padding:'12px 0', borderBottom:`1px solid ${S.borderStrong}`, marginTop:4, gap:10 }}>
+                <span style={{ fontSize:12, color:S.textMuted, fontWeight:600 }}>Positive balance before buffer and uncertainty</span>
+                <span style={{ fontFamily:S.font, fontSize:14, color:S.text }}>{preBufferBalance===null?'Pending':`${fmt(preBufferBalance)} tCO₂e`}</span>
               </div>
-
-              {/* Absolute Lifetime Emissions */}
-              <div style={{ paddingTop:14 }}>
-                <Label style={{ display:'block', marginBottom:8 }}>Absolute Lifetime Emissions</Label>
-                {[
-                  ['Soil disturbance', results.peSoil,      `${soilType==='mineral'?'5':'15'}% of Yr 5 Baseline C_project`, null],
-                  ['Fossil fuels',     results.peFf,         `${fuelLiters}L × 0.0026`, null],
-                  ...(results.lClearance>0 ? [['Pre-project clearance', results.lClearance, burned?'+15% CH₄/N₂O penalty':null, null]] : []),
-                  ...(results.leActivity>0 ? [['Activity-shifting leakage', results.leActivity, '10yr @ 0.08/head', null]] : []),
-                  ...(results.leMarket>0   ? [['Market leakage', results.leMarket, '40% default displacement', S.blue]] : []),
-                ].map(([label,val,note,c])=>(
-                  <LedgerRow key={label} label={label} note={note} value={`−${fmt(val)}`} color={c||S.red} />
-                ))}
-              </div>
-
-              <div style={{ display:'flex', justifyContent:'space-between', padding:'12px 0', borderBottom:`1px solid ${S.borderStrong}`, marginTop:4 }}>
-                <span style={{ fontFamily:S.fontSans, fontSize:12, color:S.textMuted, fontWeight:500 }}>Net Gross Removals</span>
-                <span style={{ fontFamily:S.font, fontSize:15, color:S.text }}>{fmt(results.grossEr)} tCO₂e</span>
-              </div>
-
-              {/* Integrity Deductions */}
-              <div style={{ paddingTop:14 }}>
-                <Label style={{ display:'block', marginBottom:8 }}>Integrity Deductions</Label>
-                <LedgerRow label="LB95 uncertainty" note={`U_t @ ${rmseInput.toFixed(1)}% of C_project`} value={`−${fmt(results.uDeduction)}`} color={S.amber} />
-                <LedgerRow
-                  label={`Buffer network${bufferLifted?' (RM01 elevated)':''}`}
-                  note={`B_t @ ${enforcedBuffer}% · from RM01 risk score`}
-                  value={`−${fmt(results.bDeduction)}`}
-                  color={bufferLifted?S.red:S.amber}
-                />
-                {results.hwm>0 && <LedgerRow label="HWM deficit repayment" note="Carried from previous audit period" value={`−${fmt(results.hwm)}`} color={S.red} />}
-              </div>
-
-              {/* Final issuance block */}
-              <div style={{ marginTop:18 }}>
-                <div style={{ background:S.surface, border:`1px solid ${S.border}`, borderRadius:8, padding:'18px 20px', boxShadow:'0 1px 3px rgba(0,0,0,0.04)' }}>
-
-                  {/* Cumulative total */}
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:10, paddingBottom:10, borderBottom:`1px dashed ${S.border}` }}>
-                    <Label>Total Cumulative Carbon</Label>
-                    <span style={{ fontFamily:S.font, fontSize:14, color:S.text }}>{fmt(results.cumulativeNetEr)} MBU</span>
-                  </div>
-
-                  {/* Deduct prior issuances */}
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:16 }}>
-                    <Label style={{ color:S.amber }}>− Previously Issued (Vintages)</Label>
-                    <span style={{ fontFamily:S.font, fontSize:13, color:S.amber }}>{fmt(prevIssued)} MBU</span>
-                  </div>
-
-                  {/* Vintage label */}
-                  <Label style={{ display:'block', marginBottom:8, color:results.vintageNetEr>0?S.accent:S.red }}>
-                    Vintage Issuance (New MBU)
-                  </Label>
-
-                  {results.vintageNetEr>0 ? (
-                    <div>
-                      <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
-                        <span style={{ fontFamily:S.fontHead, fontSize:44, fontWeight:500, color:S.accent, letterSpacing:'-0.04em', lineHeight:1 }}>
-                          {Math.round(results.vintageNetEr).toLocaleString()}
-                        </span>
-                        <span style={{ fontFamily:S.fontSans, fontSize:13, color:S.accent, fontWeight:600, opacity:0.7 }}>MBU</span>
-                      </div>
-                      <div style={{ marginTop:8, fontFamily:S.fontSans, fontSize:11, color:S.textMuted }}>Eligible for current verification cycle</div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
-                        <span style={{ fontFamily:S.fontHead, fontSize:40, fontWeight:500, color:S.red, letterSpacing:'-0.04em', lineHeight:1 }}>0</span>
-                        <span style={{ fontFamily:S.fontSans, fontSize:13, color:S.red, fontWeight:600, opacity:0.7 }}>MBU</span>
-                      </div>
-                      <div style={{ marginTop:8, fontFamily:S.fontSans, fontSize:11, color:S.red }}>
-                        {results.cumulativeNetEr===0 ? `high-water mark deficit: −${fmt(results.deficit)}` : 'No new growth beyond previous issuance'}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Stat chips */}
-              <div style={{ marginTop:12, display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
-                {[
-                  ['Buffer held', fmt(results.bDeduction), S.textMuted],
-                  ['U_t adj.',    fmt(results.uDeduction), S.textMuted],
-                  ['Efficiency',  results.cProject>0?`${((results.cumulativeNetEr/results.cProject)*100).toFixed(1)}%`:'—',
-                    results.cProject>0&&results.cumulativeNetEr/results.cProject>0.5?S.accent:S.amber],
-                ].map(([k,v,c])=>(
-                  <div key={k} style={{ padding:'8px 10px', background:S.surface, border:`1px solid ${S.border}`, borderRadius:6 }}>
-                    <div style={{ fontFamily:S.fontSans, fontSize:9, color:S.textDim, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:3 }}>{k}</div>
-                    <div style={{ fontFamily:S.font, fontSize:12, color:c }}>{v}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Export button — matches registry Export button style */}
-              <button
-                style={{ marginTop:14, width:'100%', padding:'10px 0', background:S.surface, border:`1px solid ${S.borderStrong}`, borderRadius:6, fontFamily:S.fontSans, fontSize:12, fontWeight:500, color:S.textMuted, cursor:'pointer', transition:'all 0.15s', letterSpacing:'-0.01em' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor=S.accent; e.currentTarget.style.color=S.accent;}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor=S.borderStrong; e.currentTarget.style.color=S.textMuted;}}>
-                ↓ Export results
-              </button>
-
+              <LedgerRow label="Buffer volume withheld" note={`Rate ${bufferRate}% · applied before uncertainty`} value={bufferVolume===null?'Pending':`−${fmt(bufferVolume)}`} color={S.amber} />
+              <LedgerRow label="Uncertainty deduction" note={uncertaintyRatesComplete?`Approved schedule · ${uncertaintyScheduleRef}`:'Rates and schedule reference required'} value={uncertaintyDeduction===null?'Pending':`−${fmt(uncertaintyDeduction)}`} color={S.amber} />
+              <LedgerRow label="Previous deficit carryover" note="Deducted after this vintage's net removals" value={`−${fmt(prevDeficit)}`} color={S.red} />
             </div>
-          )}
+
+            <div style={{ marginTop:18, background:S.surface, border:`1px solid ${S.border}`, borderRadius:8, padding:'18px 20px', boxShadow:'0 1px 3px rgba(0,0,0,0.04)' }}>
+              <Label style={{ display:'block', marginBottom:8, color:S.textMuted }}>Indicative vintage balance after deficit</Label>
+              {netBeforeCarryover===null ? <div style={{ fontSize:13, color:S.amber, lineHeight:1.5 }}>Complete the required uncertainty schedule and emission-factor inputs to calculate a final vintage balance.</div> : resultScreenPasses ? <>
+                <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
+                  <span style={{ fontFamily:S.fontHead, fontSize:38, color:provisionalUnits>0?S.accent:S.red, letterSpacing:'-0.04em', lineHeight:1 }}>{fmt(provisionalUnits,2)}</span>
+                  <span style={{ fontSize:12, color:S.textMuted }}>tCO₂e</span>
+                </div>
+                <div style={{ marginTop:8, fontSize:11, color:S.textMuted }}>Net vintage balance after required deductions and any carried-forward deficit. Not an issuance approval.</div>
+                <div style={{ display:'flex', justifyContent:'space-between', marginTop:14, paddingTop:12, borderTop:`1px solid ${S.border}`, gap:10 }}><span style={{ fontSize:11, color:S.textMuted }}>Deficit to carry forward</span><span style={{ fontFamily:S.font, fontSize:12, color:newDeficit>0?S.red:S.text }}>{fmt(newDeficit)} tCO₂e</span></div>
+              </> : <div style={{ fontSize:13, color:S.red, lineHeight:1.5 }}>No units may be treated as eligible while the screening issues below remain unresolved.</div>}
+              <div style={{ marginTop:14, display:'flex', gap:10, flexWrap:'wrap' }}>
+                <Pill color={S.amber} bg={S.amberDim}>VVB review required</Pill>
+                <Pill color={S.amber} bg={S.amberDim}>Registry approval required</Pill>
+              </div>
+            </div>
+
+            {missingInputs.length>0 && <div style={{ marginTop:14, padding:'12px 14px', background:S.amberDim, border:`1px solid ${S.amber}35`, borderRadius:6 }}>
+              <div style={{ fontSize:11, fontWeight:700, color:S.amber, marginBottom:7 }}>Required inputs missing</div>
+              <ul style={{ margin:0, paddingLeft:18, fontSize:11, color:S.textMuted, lineHeight:1.6 }}>{missingInputs.map((item,i)=><li key={i}>{item}</li>)}</ul>
+            </div>}
+            {screenIssues.length>0 && <div style={{ marginTop:14, padding:'12px 14px', background:S.redDim, border:`1px solid ${S.red}30`, borderRadius:6 }}>
+              <div style={{ fontSize:11, fontWeight:700, color:S.red, marginBottom:7 }}>Screening issues</div>
+              <ul style={{ margin:0, paddingLeft:18, fontSize:11, color:S.textMuted, lineHeight:1.6 }}>{screenIssues.map((item,i)=><li key={i}>{item}</li>)}</ul>
+            </div>}
+
+            <button onClick={exportResults} style={{ marginTop:14, width:'100%', padding:'10px 0', background:S.surface, border:`1px solid ${S.borderStrong}`, borderRadius:6, fontFamily:S.fontSans, fontSize:12, fontWeight:600, color:S.textMuted, cursor:'pointer' }}>
+              ↓ Export calculation record (JSON)
+            </button>
+            <div style={{ marginTop:10, fontSize:10, color:S.textDim, lineHeight:1.55 }}>The export records the inputs, factors, deductions and screening issues. The Registry and VVB must confirm the underlying data, eligibility and final issuance separately.</div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script></body></html>
